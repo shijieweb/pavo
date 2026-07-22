@@ -884,9 +884,9 @@ const SHOTS = {
 // DATA: 8 GROUPS (v4 with CDN URL)
 // ============================================================
 const GROUPS = [
-  { id:"A", shotEntries:[[1,0,6],[2,6,11]], duration:11, numFrames:265,
+  { id:"A", shotEntries:[[1,0,5],[2,5,10]], duration:10, numFrames:241,
     video:"videos/group_A.mp4",
-    cdnUrl:"https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/task_5jfByeuSfYJf2FFVgXSqtsjlhW50YbEm.mp4",
+    cdnUrl:"https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/task_1HFRcfadqWL2C1yUEEnSO93SrEEI02Ph.mp4",
     hasCdn: true },
   { id:"B", shotEntries:[[3,0,7],[4,7,11]], duration:11, numFrames:265,
     video:"videos/group_B.mp4", cdnUrl:null, hasCdn:false },
@@ -900,7 +900,7 @@ const GROUPS = [
     video:"videos/group_F.mp4", cdnUrl:null, hasCdn:false },
   { id:"G", shotEntries:[[13,0,7],[14,7,11]], duration:11, numFrames:265,
     video:"videos/group_G.mp4", cdnUrl:null, hasCdn:false },
-  { id:"H", shotEntries:[[15,0,8]], duration:8, numFrames:193,
+  { id:"H", shotEntries:[[15,0,10]], duration:10, numFrames:241,
     video:"videos/group_H.mp4", cdnUrl:null, hasCdn:false }
 ];
 
@@ -935,7 +935,7 @@ const PROGRESS = {
   started_at: "2026-07-22T09:07:46",
   completed_at: "2026-07-22T10:08:38",
   groups: {
-    group_A: { status:"completed", task_id:"task_5jfByeuSfYJf2FFVgXSqtsjlhW50YbEm", prompt_length: 1612 },
+    group_A: { status:"completed", task_id:"task_1HFRcfadqWL2C1yUEEnSO93SrEEI02Ph", prompt_length: 1850, deepseek: true },
     group_B: { status:"completed", started_at:"2026-07-22T09:17:56", completed_at:"2026-07-22T09:22:33", shots:[3,4], duration:11, num_frames:265, prompt_length:2152, file_size:2218145 },
     group_C: { status:"completed", started_at:"2026-07-22T09:23:03", completed_at:"2026-07-22T09:28:14", shots:[5,6], duration:11, num_frames:265, prompt_length:2533, file_size:3297342 },
     group_D: { status:"completed", started_at:"2026-07-22T09:28:44", completed_at:"2026-07-22T09:34:34", shots:[7,8], duration:10, num_frames:241, prompt_length:2012, file_size:2945128 },
@@ -950,14 +950,14 @@ const PROGRESS = {
 // DATA: FULL PROMPT TEXTS (verbatim from prompt files)
 // ============================================================
 const PROMPTS = {
-A: `0-6s: wide shot, static camera, eye-level angle. Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. Action: A worn leather military tent sways in the wind and sand of the desolate northern wasteland at night, flickering candlelight casts dim reddish glow through the tent walls. Expression: calm neutral expression, relaxed eyebrows, soft gaze. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin). The action continues with the next moment. 6-11s: medium close-up shot, slow push-in camera movement, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao covered in blood, chained to a wooden post, head hanging low, torn red bridal gown stained with mud and dirt, iron chains on wrists. Expression: calm neutral expression, relaxed eyebrows, soft gaze. Shen Zhao maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin).`,
+A: `[DeepSeek版] 0-5s: Extreme close-up shot, handheld camera with violent shaking and vibration, eye-level angle. Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. Action: Slow-motion extreme close-up of sand grains violently striking a worn leather tent surface, one sand grain embedding into a crack in the leather fiber, wind howling, dim reddish candlelight flickering through canvas walls, atmosphere of violent windstorm and desolate wasteland at night. Expression: tense, oppressive mood. Scene: Northern Tribal Military Command Tent exterior at night, flickering tallow candles behind canvas casting dim reddish glow, violent wind shaking the tent fabric, sand particles flying. The camera shakes violently throughout. 5-10s: The camera slowly tilts down from the tent surface in a slow deliberate downward movement. Medium close-up shot, slow push-in camera, eye-level angle. Young Chinese woman, slender build, pale porcelain skin with blood smears, messy long black hair, torn red ancient bridal gown stained with mud, iron chains on wrists, sharp calculating eyes. Action: Camera tilts down revealing a blood-stained torn red bridal gown hem, then shattered embroidered silk shoes, then up further to slender pale wrists tightly bound with heavy rusted iron chains, purple bruise marks visible where the chains dig into the skin, chains rattling softly in the wind. Expression: calm neutral, head hanging low, motionless captive. Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. Shen Zhao maintains exact same clothing and appearance. All characters speak Chinese (Mandarin).`,
 B: `0-7s: close-up shot, static camera, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Enemy general Murong Yan grabs Shen Zhao's chin from above, looking down condescendingly, his right hand bandaged and trembling slightly, dominant posture. Murong Yan is speaking in Mandarin Chinese (speaker: Murong Yan, role: Supporting, is speaking, speaking with voice: Deep, rough, sneering, commanding). Chinese dialogue: "这就是大周送来的女人？细皮嫩肉，不如便宜本将。". Expression: calm neutral expression, relaxed eyebrows, soft gaze. Shen Zhao maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin). The action continues with the next moment. 7-11s: extreme close-up shot, static camera, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao suddenly opens her eyes, sharp analytical gaze, no fear in her expression, only the cold light of tactical assessment. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin).`,
-C: `0-7s: medium close-up shot, lateral tracking shot, camera sliding horizontally, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Shen Zhao's lips curl into a slight smile, her hoarse voice carrying a mocking tone, the enemy general freezes in stunned surprise. Shen Zhao is speaking in Mandarin Chinese (speaker: Shen Zhao, role: Main, is speaking, speaking with voice: Hoarse and raspy initially, steady and low-pitched, carrying a subtle mocking tone). Chinese dialogue: "将军。你腰上有旧伤吧？". Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin). The atmosphere shifts to explosive combat intensity. 7-11s: close-up shot, slow push-in camera movement, slight high angle, looking down. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Shen Zhao violently raises her chained hands, the iron chains coil around Murong Yan's neck like a venomous snake, sudden explosive action, chains pulling taut. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin).`,
+C: `[DeepSeek版] 0-3s: Medium close-up shot, slow push-in camera, eye-level angle. Young Chinese woman, slender build, pale porcelain skin with blood smears, messy long black hair, torn red ancient bridal gown stained with mud, iron chains on wrists, sharp calculating eyes and Middle-aged male warrior, broad muscular build, rugged weathered face, short black beard, northern tribal leather armor with fur collar, curved sword at waist, right hand wrapped in dirty bandages, arrogant predatory expression. Action: Shen Zhao's lips curl into a slight mocking smile, her hoarse voice carrying a subtle taunt, the enemy general Murong Yan freezes in stunned surprise, his eyes widening slightly. Shen Zhao is speaking in Mandarin Chinese (speaker: Shen Zhao, role: Main, is speaking, speaking with voice: Hoarse and raspy initially, steady and low-pitched, carrying a subtle mocking tone). Chinese dialogue: "将军。你腰上有旧伤吧？". Expression: Shen Zhao has a calm confident smirk, Murong Yan shows stunned shock. Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin). The atmosphere shifts to explosive combat intensity. 3-6s: Close-up shot, slow-motion high-speed cinematography (overcranked 120fps playback at 24fps), slow push-in camera, slight high angle looking down. Action: Shen Zhao violently raises her chained hands upward, the iron chains draw a gleaming silver arc through the air in slow motion, her wrists twist and flip the chains like a venomous snake coiling, the chains wrap around Murong Yan's neck and dig into the leather and skin, chains pulling violently taut with visible tension. Expression: explosive, fierce, determined. Scene: Northern Tribal Military Command Tent, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat. All characters speak Chinese (Mandarin). The action continues with sudden blackout.`,
 D: `0-6s: medium close-up shot, tracking shot following the subject, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Using the general's forward momentum, Shen Zhao yanks down violently, a sharp crack as the enemy general falls to the ground, Shen Zhao swiftly pulls the curved sword from his waist. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin). The action continues with the next moment. 6-10s: extreme close-up shot, static camera, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: The curved sword flashes cold light, slicing through the ropes on Shen Zhao's wrists, iron chains falling to the ground with a heavy clatter. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin).`,
 E: `0-6s: medium shot, lateral tracking shot, camera sliding horizontally, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: First slash strikes the left lamp stand, candles extinguish, the tent plunges into sudden darkness; second slash cuts the binding ropes of the leather armor pile on the right. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin). The action continues with the next moment. 6-12s: medium shot, static camera, slight high angle, looking down. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Two guards rush into the tent, tripped by the collapsed leather armor pile, in the chaos Shen Zhao ducks low and slips past them. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin).`,
 F: `0-5s: close-up shot, tracking shot following the subject, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao bursts through the tent entrance, her cloak flapping fiercely in the wind, eyes cold and sharp as blades. Expression: bright eyes, open smile, energetic gaze. Shen Zhao maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin). The scene transitions from the tent to the open wasteland outside. 5-11s: medium shot, tracking shot following the subject, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao leaps onto a black warhorse from ten paces away, squeezes with her legs, the stallion neighs and charges out of the stable. Expression: bright eyes, open smile, energetic gaze. Shen Zhao maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin).`,
 G: `0-7s: wide shot, static camera, slight high angle, looking down. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Horns blare behind her, pursuers' torches ignite. Shen Zhao crouches low, pressing against the horse's back, galloping across the wasteland at full speed. Expression: bright eyes, open smile, energetic gaze. Shen Zhao maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin). The action continues with the next moment. 7-11s: extreme close-up shot, static camera, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Night wind sweeps across Shen Zhao's profile, the corner of her mouth lifts slightly, her gaze resolute and unwavering. Expression: bright eyes, open smile, energetic gaze. Shen Zhao maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin).`,
-H: `0-8s: extreme wide shot, slow pull-back camera movement, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: The black horse becomes a tiny speck in the darkness, swiftly disappearing into the vast desolate wasteland. Shen Zhao is speaking in Mandarin Chinese (speaker: Shen Zhao, role: Main, is speaking, speaking with voice: Hoarse and raspy initially, steady and low-pitched, carrying a subtle mocking tone). Chinese dialogue: "北境是吧？我来了。". Expression: bright eyes, open smile, energetic gaze. Shen Zhao maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin).`
+H: `[DeepSeek版] 0-4s: Wide shot, slow pull-back camera movement, eye-level angle. Young Chinese woman, slender build, pale porcelain skin with blood smears, messy long black hair, torn red ancient bridal gown stained with mud, iron chains on wrists, sharp calculating eyes. Action: The black horse gallops across the vast desolate northern wasteland under cold moonlight, pursuers' torches visible far behind, Shen Zhao crouches low pressing against the horse's back, her torn red bridal gown and hair streaming in the wind, the horse kicks up sand and dust as it charges into the distance, atmosphere of vast empty frontier and urgent escape. Expression: determined, resolute, wind-swept profile. Scene: Open-Air Nomadic wasteland at night, cold moonlight with distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier stretching to the horizon. Shen Zhao maintains exact same clothing and appearance. All characters speak Chinese (Mandarin). 4-10s: Extreme wide shot, slow pull-back camera continues, eye-level angle. Action: The black horse and rider become a tiny speck in the vast darkness, gradually disappearing into the desolate wasteland, the flames of the distant pursuers' torches grow smaller and fade, the screen slowly fades to black over 3 seconds, the final image before blackout is the tiny silhouette against the huge dark landscape. Expression: fading into darkness, epic and cinematic. Scene: Vast northern wasteland at night under cold moonlight, everything slowly consumed by darkness. Shen Zhao maintains exact same clothing and appearance. All characters speak Chinese (Mandarin).`
 };
 
 // ============================================================
@@ -1627,7 +1627,13 @@ function sendDirectGenerate(groupId) {
     body: JSON.stringify(payload)
   })
   .then(r => {
-    if (!r.ok) return r.json().then(e => { throw new Error(e.detail || e.message || "HTTP " + r.status); });
+    if (!r.ok) return r.json().then(e => {
+      const code = e.code || "";
+      if (code === "video_queue_full") {
+        throw { queueFull: true, message: "队列已满，将在120秒后自动重试..." };
+      }
+      throw new Error(e.detail || e.message || "HTTP " + r.status);
+    });
     return r.json();
   })
   .then(data => {
@@ -1643,13 +1649,42 @@ function sendDirectGenerate(groupId) {
     startPollingTask(groupId, taskId);
   })
   .catch(err => {
-    showToast("发送失败: " + err.message, "error");
-    if (btn) { btn.disabled = false; btn.textContent = "\u26A1 直接发送生成"; }
+    if (err && err.queueFull) {
+      showToast(err.message, "info");
+      if (btn) { btn.disabled = true; btn.textContent = "等待队列(120s)..."; }
+      // Auto-retry after 120 seconds
+      const retryBtn = document.querySelector(`#regenPanel_${groupId} .btn-success`);
+      const retryCount = parseInt(retryBtn?.dataset?.retryCount || "0") + 1;
+      if (retryBtn) retryBtn.dataset.retryCount = retryCount;
+      if (retryCount <= 5) {
+        setTimeout(() => sendDirectGenerate(groupId), 120000);
+      } else {
+        showToast("重试5次仍队列满，请稍后再试", "error");
+        if (btn) { btn.disabled = false; btn.textContent = "\u26A1 直接发送生成"; }
+      }
+    } else {
+      showToast("发送失败: " + (err.message || err), "error");
+      if (btn) { btn.disabled = false; btn.textContent = "\u26A1 直接发送生成"; }
+    }
   });
 }
 
+function showGenPanel() {
+  const panel = document.getElementById("genProgressPanel");
+  if (panel) panel.style.display = "";
+}
+function hideGenPanel() {
+  const panel = document.getElementById("genProgressPanel");
+  if (panel) panel.style.display = "none";
+}
+function toggleGenPanelMin() {
+  const panel = document.getElementById("genProgressPanel");
+  if (panel) panel.classList.toggle("minimized");
+}
+
 function addGenTaskCard(groupId, taskId) {
-  const container = document.getElementById("genTasksContainer");
+  showGenPanel();
+  const container = document.getElementById("genPanelBody");
   // Remove empty state
   const empty = container.querySelector(".gen-panel-empty");
   if (empty) empty.remove();
@@ -1684,9 +1719,10 @@ function removeGenTask(taskId) {
   const card = document.getElementById("genTask_" + taskId);
   if (card) card.remove();
   // Show empty state if no tasks
-  const container = document.getElementById("genTasksContainer");
+  const container = document.getElementById("genPanelBody");
   if (container && container.children.length === 0) {
     container.innerHTML = '<div class="gen-panel-empty">暂无生成任务。点击各组「直接发送生成」开始。</div>';
+    hideGenPanel();
   }
 }
 
@@ -1722,7 +1758,7 @@ function startPollingTask(groupId, taskId) {
         if (pctEl) pctEl.textContent = progress + "%";
       }
 
-      if (status === "succeeded" || status === "complete" || status === "success") {
+      if (status === "succeeded" || status === "completed" || status === "complete" || status === "success") {
         clearInterval(pollInterval);
         clearInterval(updateTimer);
         showToast("Group " + groupId + " 生成完成！", "success");
@@ -1730,20 +1766,18 @@ function startPollingTask(groupId, taskId) {
         // Show result
         const resultEl = document.getElementById("genResult_" + taskId);
         if (resultEl && videoUrl) {
+          const finalUrl = videoUrl || ("https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/" + taskId + ".mp4");
           resultEl.innerHTML = `
-            <div class="gen-task-video-url">\u{1F4F9} <a href="${escAttr(videoUrl)}" target="_blank" style="color:var(--accent-cyan);word-break:break-all;">${esc(videoUrl)}</a></div>
+            <div class="gen-task-video-url">\u{1F4F9} <a href="${escAttr(finalUrl)}" target="_blank" style="color:var(--accent-cyan);word-break:break-all;">${esc(finalUrl)}</a></div>
             <div class="gen-task-actions">
-              <button class="btn btn-primary btn-small" onclick="updateVideoSrc('${groupId}','${escAttr(videoUrl)}')">替换当前视频</button>
-              <button class="btn btn-small" onclick="copyToClipboard('${escAttr(videoUrl)}');showToast('URL 已复制')">复制 URL</button>
+              <button class="btn btn-primary btn-small" onclick="updateVideoSrc('${groupId}','${escAttr(finalUrl)}')">替换当前视频</button>
+              <button class="btn btn-small" onclick="copyToClipboard('${escAttr(finalUrl)}');showToast('URL 已复制')">复制 URL</button>
             </div>`;
-        } else if (resultEl) {
-          // Try to construct CDN URL from taskId
-          const cdnUrl = "https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/" + taskId + ".mp4";
-          resultEl.innerHTML = `
-            <div class="gen-task-video-url">\u{1F4F9} 预计 CDN URL (请验证): <span style="color:var(--accent-cyan);word-break:break-all;">${esc(cdnUrl)}</span></div>
-            <div class="gen-task-actions">
-              <button class="btn btn-primary btn-small" onclick="updateVideoSrc('${groupId}','${escAttr(cdnUrl)}')">替换当前视频</button>
-            </div>`;
+          // AUTO-UPDATE: automatically replace the video source on generation success
+          updateVideoSrc(groupId, finalUrl);
+          // Also update compare video if exists
+          const dsOrig = document.getElementById("ds_orig_"+groupId);
+          if (dsOrig) { dsOrig.src = finalUrl; dsOrig.load(); }
         }
       } else if (status === "failed") {
         clearInterval(pollInterval);
