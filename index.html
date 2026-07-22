@@ -550,7 +550,9 @@
     background: var(--bg-deep); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-blue);
     border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
   }
-  .gen-task-card.status-succeeded { border-left-color: var(--accent-green); }
+  .gen-task-card.status-succeeded,
+  .gen-task-card.status-completed { border-left-color: var(--accent-green); }
+  .gen-task-card.status-in_progress { border-left-color: var(--accent-blue); }
   .gen-task-card.status-failed { border-left-color: var(--accent-red); }
   .gen-task-card.status-queued { border-left-color: var(--text-muted); }
   .gen-task-card.status-processing { border-left-color: var(--accent-blue); }
@@ -564,7 +566,9 @@
   }
   .gen-task-status.queued { background: rgba(102,102,128,0.25); color: var(--text-secondary); }
   .gen-task-status.processing { background: rgba(74,158,255,0.2); color: var(--accent-blue); }
-  .gen-task-status.succeeded { background: rgba(46,213,115,0.2); color: var(--accent-green); }
+  .gen-task-status.succeeded,
+  .gen-task-status.completed { background: rgba(46,213,115,0.2); color: var(--accent-green); }
+  .gen-task-status.in_progress { background: rgba(74,158,255,0.2); color: var(--accent-blue); }
   .gen-task-status.failed { background: rgba(255,71,87,0.2); color: var(--accent-red); }
   .gen-task-row { font-size: 0.66rem; color: var(--text-secondary); margin-bottom: 3px; word-break: break-all; }
   .gen-task-row .lbl { color: var(--text-muted); }
@@ -1751,11 +1755,15 @@ function startPollingTask(groupId, taskId) {
         const statusEl = document.getElementById("genStatus_" + taskId);
         const pctEl = document.getElementById("genPct_" + taskId);
         if (statusEl) {
-          statusEl.textContent = status;
+          const statusLabels = { queued: "排队中", in_progress: "生成中", processing: "处理中", completed: "已完成", succeeded: "已完成", complete: "已完成", failed: "失败" };
+          statusEl.textContent = statusLabels[status] || status;
           const badge = card.querySelector(".gen-task-status");
-          if (badge) { badge.className = "gen-task-status " + status; badge.textContent = status; }
+          if (badge) { badge.className = "gen-task-status " + status; badge.textContent = statusLabels[status] || status; }
         }
-        if (pctEl) pctEl.textContent = progress + "%";
+        if (pctEl) {
+          pctEl.textContent = progress + "%";
+          pctEl.style.color = progress >= 100 ? "var(--accent-green)" : progress > 0 ? "var(--accent-cyan)" : "var(--text-muted)";
+        }
       }
 
       if (status === "succeeded" || status === "completed" || status === "complete" || status === "success") {
@@ -1773,11 +1781,8 @@ function startPollingTask(groupId, taskId) {
               <button class="btn btn-primary btn-small" onclick="updateVideoSrc('${groupId}','${escAttr(finalUrl)}')">替换当前视频</button>
               <button class="btn btn-small" onclick="copyToClipboard('${escAttr(finalUrl)}');showToast('URL 已复制')">复制 URL</button>
             </div>`;
-          // AUTO-UPDATE: automatically replace the video source on generation success
+          // AUTO-UPDATE: automatically replace the video source on generation success (also persists to localStorage)
           updateVideoSrc(groupId, finalUrl);
-          // Also update compare video if exists
-          const dsOrig = document.getElementById("ds_orig_"+groupId);
-          if (dsOrig) { dsOrig.src = finalUrl; dsOrig.load(); }
         }
       } else if (status === "failed") {
         clearInterval(pollInterval);
@@ -1811,6 +1816,26 @@ function applyTaskId(groupId) {
   showToast("CDN URL 已计算，点击更新按钮应用");
 }
 
+// Load saved video URLs from localStorage
+const VIDEO_URL_KEY = "plan_bd_video_urls_v6";
+function loadSavedVideoUrls() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(VIDEO_URL_KEY) || "{}");
+    for (const gid in saved) {
+      const g = GROUPS.find(x => x.id === gid);
+      if (g) { g.cdnUrl = saved[gid]; g.hasCdn = true; }
+    }
+    return saved;
+  } catch(e) { return {}; }
+}
+function saveVideoUrl(groupId, url) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(VIDEO_URL_KEY) || "{}");
+    saved[groupId] = url;
+    localStorage.setItem(VIDEO_URL_KEY, JSON.stringify(saved));
+  } catch(e) {}
+}
+
 function updateVideoSrc(groupId, url) {
   const v = document.getElementById("vid_"+groupId);
   if (v) {
@@ -1822,13 +1847,18 @@ function updateVideoSrc(groupId, url) {
       g.cdnUrl = url;
       g.hasCdn = true;
     }
-    showToast("视频源已更新为 CDN URL");
+    // Persist to localStorage
+    saveVideoUrl(groupId, url);
+    showToast("视频源已更新为 CDN URL（已持久化）");
     // Update badge
     const badges = document.querySelectorAll(`#group_${groupId} .video-cdn-badge`);
     badges.forEach(b => {
       b.className = "video-cdn-badge has";
       b.textContent = "CDN URL";
     });
+    // Also update compare original video
+    const dsOrig = document.getElementById("ds_orig_"+groupId);
+    if (dsOrig) { dsOrig.src = url; dsOrig.load(); }
   }
 }
 
@@ -2429,8 +2459,10 @@ function renderRefImagesSection(g) {
           <textarea id="${taId}" rows="3">${escAttr(img.prompt)}</textarea>
           <div style="display:flex;gap:4px;flex-wrap:wrap;">
             <button class="btn btn-small btn-primary" onclick="generateImageCurl('${g.id}',${idx})">复制 cURL</button>
+            <button class="btn btn-small btn-success" onclick="sendDirectImageGenerate('${g.id}',${idx})">发送生成</button>
           </div>
           <div class="regen-curl-output hidden" id="${outId}"></div>
+          <div class="ref-img-result" id="refResult_${g.id}_${idx}"></div>
         </div>
       </div></div>`;
   });
@@ -2451,6 +2483,80 @@ function generateImageCurl(groupId, imgIdx) {
   el.classList.remove("hidden");
   const safeCurl = curl.replace(/\\/g,"\\\\").replace(/`/g,"\\`");
   el.innerHTML = `<pre style="color:var(--accent-cyan);white-space:pre-wrap;word-break:break-all;font-size:0.65rem;line-height:1.5;margin:0;">${esc(curl)}</pre><div style="margin-top:6px;"><button class="btn btn-primary btn-small" onclick="copyToClipboard(\`${safeCurl}\`);showToast('cURL 已复制')">复制到剪贴板</button> <button class="btn btn-small" onclick="document.getElementById('${outId}').classList.add('hidden')">关闭</button></div>`;
+}
+
+// V6: DIRECT IMAGE GENERATE with progress
+function sendDirectImageGenerate(groupId, imgIdx) {
+  const taId = `refPrompt_${groupId}_${imgIdx}`;
+  const resultId = `refResult_${groupId}_${imgIdx}`;
+  const prompt = document.getElementById(taId).value;
+  const resultEl = document.getElementById(resultId);
+  if (!resultEl) return;
+  
+  resultEl.innerHTML = '<div style="font-size:0.68rem;color:var(--accent-blue);padding:4px 0;">发送中...</div>';
+  
+  const payload = { model: "agnes-image-v1.0", prompt: prompt, width: 1024, height: 1536 };
+  
+  fetch("https://apihub.agnes-ai.com/v1/images", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + API_CONFIG.api_key, "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(r => {
+    if (!r.ok) return r.json().then(e => { throw new Error(e.detail || e.message || "HTTP " + r.status); });
+    return r.json();
+  })
+  .then(data => {
+    const imgId = data.id || data.image_id || data.task_id;
+    resultEl.innerHTML = `<div style="font-size:0.68rem;color:var(--accent-yellow);padding:4px 0;">生成中... ID: ${esc(imgId || "?")}</div>`;
+    
+    // Poll for image completion
+    let attempts = 0;
+    const pollImg = setInterval(() => {
+      attempts++;
+      if (attempts > 60) { clearInterval(pollImg); resultEl.innerHTML += '<div style="font-size:0.65rem;color:var(--accent-red);">超时</div>'; return; }
+      
+      fetch("https://apihub.agnes-ai.com/v1/images/" + imgId, {
+        headers: { "Authorization": "Bearer " + API_CONFIG.api_key }
+      })
+      .then(r => r.json())
+      .then(d => {
+        const s = d.status;
+        if (s === "succeeded" || s === "completed" || s === "complete") {
+          clearInterval(pollImg);
+          const imgUrl = d.url || d.image_url || d.data?.url || d.metadata?.url || "";
+          if (imgUrl) {
+            // Update the reference image
+            const imgCard = resultEl.closest('.ref-img-card');
+            if (imgCard) {
+              const img = imgCard.querySelector('img');
+              if (img) { img.src = imgUrl; img.style.border = "2px solid var(--accent-green)"; }
+            }
+            // Also update REF_IMAGES data
+            if (REF_IMAGES[groupId] && REF_IMAGES[groupId][imgIdx]) {
+              REF_IMAGES[groupId][imgIdx].path = imgUrl;
+            }
+            resultEl.innerHTML = `
+              <div style="font-size:0.65rem;color:var(--accent-green);margin-bottom:4px;">生成成功！</div>
+              <div style="font-size:0.62rem;color:var(--text-muted);word-break:break-all;">${esc(imgUrl)}</div>
+              <button class="btn btn-small" style="margin-top:4px;" onclick="copyToClipboard('${imgUrl}');showToast('URL已复制')">复制URL</button>`;
+            showToast("参考图已更新", "success");
+          }
+        } else if (s === "failed") {
+          clearInterval(pollImg);
+          resultEl.innerHTML = '<div style="font-size:0.65rem;color:var(--accent-red);">生成失败</div>';
+        }
+      })
+      .catch(() => {});
+    }, 5000);
+  })
+  .catch(err => {
+    if (err.message && err.message.includes("queue")) {
+      resultEl.innerHTML = '<div style="font-size:0.65rem;color:var(--accent-orange);">队列已满，请120s后重试</div>';
+    } else {
+      resultEl.innerHTML = `<div style="font-size:0.65rem;color:var(--accent-red);">失败: ${esc(err.message)}</div>`;
+    }
+  });
 }
 
 // V5: RENDER NOVEL
@@ -2499,6 +2605,7 @@ function importAnnotationsFromURL(silent) {
 // INIT
 // ============================================================
 function init() {
+  loadSavedVideoUrls();
   renderFilterOptions();
   renderGroupNav();
   renderApiConfig();
