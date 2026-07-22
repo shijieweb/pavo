@@ -1,1 +1,1833 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一章：敌帐 - 调试看板 v4 (DEBUG + Regenerate)</title>
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #14141f;
+    --bg-card: #1a1a28;
+    --bg-card-hover: #222235;
+    --bg-deep: #0f0f18;
+    --border-color: #2a2a3e;
+    --border-accent: #3a3a5e;
+    --text-primary: #e8e8f0;
+    --text-secondary: #9999b0;
+    --text-muted: #666680;
+    --accent-blue: #4a9eff;
+    --accent-red: #ff4757;
+    --accent-green: #2ed573;
+    --accent-yellow: #ffa502;
+    --accent-purple: #a855f7;
+    --accent-orange: #ff6b35;
+    --accent-cyan: #22d3ee;
+    --scrollbar-bg: #14141f;
+    --scrollbar-thumb: #33334a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 15px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a30 50%, #0f1a2e 100%);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    backdrop-filter: blur(10px);
+  }
+  .header-inner { max-width: 1400px; margin: 0 auto; }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { font-size: 1.05rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+  .header .badge {
+    font-size: 0.65rem; background: var(--accent-red); color: #fff;
+    padding: 2px 10px; border-radius: 10px; font-weight: 600;
+  }
+  .header .badge.sub { background: var(--accent-purple); margin-left: 6px; }
+  .header .badge.v4 { background: var(--accent-cyan); margin-left: 6px; }
+  .header-stats { display: flex; gap: 16px; font-size: 0.75rem; color: var(--text-secondary); flex-wrap: wrap; }
+  .header-stats .stat { display: flex; align-items: center; gap: 5px; }
+  .header-stats .stat-num { font-weight: 700; color: #fff; font-size: 0.85rem; }
+
+  /* ===== LAYOUT ===== */
+  .main-layout { display: flex; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 72px); }
+  .sidebar {
+    width: 240px; flex-shrink: 0; background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color); padding: 16px 12px;
+    position: sticky; top: 72px; height: calc(100vh - 72px); overflow-y: auto;
+  }
+  .content { flex: 1; padding: 16px; min-width: 0; }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar-section { margin-bottom: 20px; }
+  .sidebar-title {
+    font-size: 0.7rem; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; padding-left: 4px;
+  }
+  .group-nav-list { list-style: none; }
+  .group-nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border-radius: 6px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px;
+  }
+  .group-nav-item:hover { background: var(--bg-card); }
+  .group-nav-item.active { background: var(--bg-card); border-left: 3px solid var(--accent-blue); }
+  .group-nav-letter {
+    width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0; color: #fff;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  }
+  .group-nav-info { flex: 1; min-width: 0; }
+  .group-nav-shots { font-size: 0.72rem; color: var(--text-secondary); }
+  .group-nav-meta { font-size: 0.62rem; color: var(--text-muted); }
+  .group-nav-count {
+    font-size: 0.65rem; background: var(--accent-red); color: #fff;
+    padding: 1px 7px; border-radius: 10px; font-weight: 600; flex-shrink: 0;
+  }
+  .group-nav-count.zero { background: #333; color: var(--text-muted); }
+
+  /* Filter selects */
+  .filter-select {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border-color);
+    color: var(--text-primary); border-radius: 6px; padding: 6px 8px;
+    font-size: 0.72rem; font-family: inherit; margin-bottom: 8px;
+  }
+  .filter-select:focus { outline: none; border-color: var(--accent-blue); }
+
+  /* ===== TABS ===== */
+  .tab-bar {
+    display: flex; gap: 2px; margin-bottom: 16px; background: var(--bg-secondary);
+    border-radius: 8px; padding: 4px;
+  }
+  .tab-btn {
+    flex: 1; padding: 9px 12px; background: transparent; border: none; border-radius: 6px;
+    color: var(--text-secondary); font-size: 0.78rem; cursor: pointer; transition: all 0.15s;
+    font-weight: 500; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text-primary); }
+  .tab-btn.active { background: var(--bg-card); color: #fff; font-weight: 600; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ===== SECTION ===== */
+  .section-title {
+    font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+    padding: 4px 0 12px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border-color); margin-bottom: 14px;
+  }
+  .section-title .count { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; }
+  .subsection { margin-bottom: 22px; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 16px; margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 0.85rem; font-weight: 700; color: var(--accent-blue);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ===== API CONFIG ===== */
+  .kv-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .kv-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+  .kv-table td:first-child { color: var(--text-muted); width: 38%; white-space: nowrap; }
+  .kv-table td:last-child { color: var(--text-primary); word-break: break-all; }
+  .kv-table tr:last-child td { border-bottom: none; }
+  .mono { font-family: "SF Mono", "Menlo", "Consolas", "Courier New", monospace; }
+  .code-inline {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace; font-size: 0.72rem;
+    background: var(--bg-deep); padding: 1px 6px; border-radius: 4px; color: var(--accent-cyan);
+  }
+
+  /* ===== GROUP OVERVIEW GRID ===== */
+  .groups-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+  }
+  .group-card {
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .group-card:hover { border-color: var(--accent-blue); transform: translateY(-1px); }
+  .group-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .group-card-id { font-size: 1.1rem; font-weight: 800; color: #fff; }
+  .group-card-status { font-size: 0.6rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .group-card-status.completed { background: rgba(46,213,115,0.15); color: var(--accent-green); }
+  .group-card-row { font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 3px; display:flex; gap:6px; }
+  .group-card-row span.lbl { color: var(--text-muted); min-width: 48px; }
+  .group-card-row .cdn-badge {
+    font-size: 0.58rem; padding: 1px 6px; border-radius: 8px; font-weight: 600;
+  }
+  .cdn-badge.has { background: rgba(46,213,115,0.12); color: var(--accent-green); }
+  .cdn-badge.missing { background: rgba(255,71,87,0.12); color: var(--accent-red); }
+
+  /* ===== GROUP DEBUG CARD ===== */
+  .debug-card {
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: 14px; margin-bottom: 22px; overflow: hidden;
+  }
+  .debug-card-head {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+  }
+  .debug-letter {
+    width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.2rem; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); flex-shrink: 0;
+  }
+  .debug-head-info { flex: 1; min-width: 120px; }
+  .debug-head-title { font-size: 0.95rem; font-weight: 700; }
+  .debug-head-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+  .debug-card-body { padding: 16px; }
+
+  .debug-grid { display: grid; grid-template-columns: 340px 1fr; gap: 18px; }
+  @media (max-width: 1000px) { .debug-grid { grid-template-columns: 1fr; } }
+
+  /* ===== VIDEO PLAYER ===== */
+  .video-wrap {
+    position: relative; border-radius: 10px; overflow: hidden; background: #000;
+    aspect-ratio: 9/16; max-height: 560px;
+  }
+  .video-wrap video { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .video-label {
+    position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7);
+    color: #fff; font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+  }
+  .video-time {
+    position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7);
+    color: #fff; font-size: 0.65rem; padding: 2px 8px; border-radius: 4px;
+    font-family: "SF Mono", monospace;
+  }
+  .video-cdn-badge {
+    position: absolute; bottom: 8px; left: 8px; font-size: 0.58rem; padding: 2px 8px;
+    border-radius: 4px; font-weight: 600;
+  }
+  .video-cdn-badge.has { background: rgba(46,213,115,0.85); color: #fff; }
+  .video-cdn-badge.missing { background: rgba(255,165,2,0.85); color: #000; }
+
+  /* annotation timeline bar */
+  .anno-timeline {
+    position: relative; height: 26px; background: var(--bg-deep); border-radius: 6px;
+    margin-top: 8px; cursor: pointer; border: 1px solid var(--border-color);
+  }
+  .anno-timeline .tl-progress {
+    position: absolute; top: 0; left: 0; height: 100%; background: rgba(74,158,255,0.2);
+    border-radius: 6px 0 0 6px; pointer-events: none;
+  }
+  .anno-timeline .tl-marker {
+    position: absolute; top: 2px; width: 4px; height: calc(100% - 4px); background: var(--accent-red);
+    border-radius: 2px; cursor: pointer; transform: translateX(-50%);
+  }
+  .anno-timeline .tl-marker:hover { background: var(--accent-yellow); }
+  .anno-timeline .tl-tick {
+    position: absolute; top: 0; font-size: 0.55rem; color: var(--text-muted);
+    transform: translateX(-50%);
+  }
+
+  /* ===== ANNOTATION FORM ===== */
+  .anno-controls { margin-top: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 7px;
+    border: 1px solid var(--border-accent); background: var(--bg-card); color: var(--text-primary);
+    font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn:hover { background: var(--bg-card-hover); border-color: var(--accent-blue); }
+  .btn-primary { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+  .btn-primary:hover { background: #3a8ae0; }
+  .btn-danger { background: transparent; border-color: var(--accent-red); color: var(--accent-red); }
+  .btn-danger:hover { background: rgba(255,71,87,0.12); }
+  .btn-success { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+  .btn-success:hover { background: #25b55e; }
+  .btn-small { padding: 4px 10px; font-size: 0.68rem; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+
+  .anno-form {
+    background: var(--bg-deep); border: 1px dashed var(--border-accent);
+    border-radius: 8px; padding: 12px; margin-top: 10px;
+  }
+  .anno-form.hidden { display: none; }
+  .form-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+  .form-row label { font-size: 0.7rem; color: var(--text-muted); min-width: 50px; }
+  .form-row input, .form-row select, .form-row textarea {
+    background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);
+    border-radius: 6px; padding: 6px 9px; font-size: 0.75rem; font-family: inherit; flex: 1; min-width: 0;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    outline: none; border-color: var(--accent-blue);
+  }
+  .form-row textarea { resize: vertical; min-height: 50px; width: 100%; }
+
+  /* ===== ANNOTATION LIST ===== */
+  .anno-list { margin-top: 12px; }
+  .anno-item {
+    background: var(--bg-deep); border: 1px solid var(--border-color); border-left: 3px solid var(--accent-red);
+    border-radius: 6px; padding: 9px 11px; margin-bottom: 7px;
+  }
+  .anno-item-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+  .anno-time { font-family: "SF Mono", monospace; font-size: 0.72rem; color: var(--accent-yellow); font-weight: 700; }
+  .anno-cat {
+    font-size: 0.62rem; padding: 1px 8px; border-radius: 10px; font-weight: 600;
+  }
+  .cat-color-0 { background: rgba(74,158,255,0.15); color: var(--accent-blue); }
+  .cat-color-1 { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+  .cat-color-2 { background: rgba(255,165,2,0.15); color: var(--accent-yellow); }
+  .cat-color-3 { background: rgba(46,213,115,0.15); color: var(--accent-green); }
+  .cat-color-4 { background: rgba(255,107,53,0.15); color: var(--accent-orange); }
+  .cat-color-5 { background: rgba(153,153,176,0.15); color: var(--text-secondary); }
+  .anno-desc { font-size: 0.75rem; color: var(--text-primary); word-break: break-word; }
+  .anno-del { margin-left: auto; }
+
+  .empty-hint {
+    font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 14px;
+    border: 1px dashed var(--border-color); border-radius: 8px;
+  }
+
+  /* ===== PROMPT DISPLAY ===== */
+  .collapsible-head {
+    display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+    padding: 8px 0; user-select: none;
+  }
+  .collapsible-head .chev { transition: transform 0.2s; color: var(--text-muted); }
+  .collapsible-head.open .chev { transform: rotate(90deg); }
+  .collapsible-body { display: none; margin-top: 8px; }
+  .collapsible-body.open { display: block; }
+  .prompt-pre {
+    background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 8px;
+    padding: 12px; font-family: "SF Mono", "Menlo", "Consolas", monospace; font-size: 0.72rem;
+    color: var(--text-primary); white-space: pre-wrap; word-break: break-word; line-height: 1.7;
+    max-height: 420px; overflow-y: auto;
+  }
+  .prompt-pre .seg-time { color: var(--accent-yellow); font-weight: 700; }
+  .prompt-pre .seg-trans { color: var(--accent-purple); font-style: italic; }
+  .prompt-stat { font-size: 0.68rem; color: var(--text-muted); margin-top: 6px; }
+
+  /* ===== BREAKDOWN ===== */
+  .breakdown-shot {
+    background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 8px;
+    padding: 12px; margin-bottom: 10px;
+  }
+  .breakdown-shot-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .breakdown-shot-tag {
+    font-size: 0.65rem; font-weight: 700; padding: 2px 9px; border-radius: 10px;
+    background: var(--accent-blue); color: #fff;
+  }
+  .breakdown-field { margin-bottom: 7px; }
+  .breakdown-field-label {
+    font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .breakdown-field-value {
+    font-size: 0.74rem; color: var(--text-primary); word-break: break-word;
+    background: var(--bg-secondary); padding: 5px 8px; border-radius: 5px; border-left: 2px solid var(--accent-cyan);
+  }
+  .breakdown-field-value.dialogue { border-left-color: var(--accent-orange); }
+  .breakdown-field-value.expression { border-left-color: var(--accent-green); }
+  .breakdown-field-value.scene { border-left-color: var(--accent-purple); }
+  .breakdown-field-value.camera { border-left-color: var(--accent-yellow); }
+  .breakdown-field-value.subject { border-left-color: var(--accent-blue); }
+  .breakdown-transition {
+    font-size: 0.7rem; color: var(--accent-purple); font-style: italic;
+    text-align: center; padding: 6px; background: rgba(168,85,247,0.08); border-radius: 6px;
+    margin: 8px 0;
+  }
+
+  /* ===== SHOT DETAIL ===== */
+  .shot-detail-mini {
+    background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  .shot-detail-mini-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .shot-num-badge {
+    width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 0.68rem; font-weight: 700; color: #fff; background: var(--accent-purple);
+    flex-shrink: 0;
+  }
+  .chip {
+    font-size: 0.6rem; padding: 1px 7px; border-radius: 10px; font-weight: 600;
+    background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-color);
+  }
+  .chip.scene0 { color: var(--accent-orange); border-color: rgba(255,107,53,0.3); }
+  .chip.scene1 { color: var(--accent-red); border-color: rgba(255,71,87,0.3); }
+  .chip.scene2 { color: var(--accent-cyan); border-color: rgba(34,211,238,0.3); }
+  .shot-desc-cn { font-size: 0.74rem; color: var(--text-primary); margin-bottom: 3px; }
+  .shot-desc-en { font-size: 0.68rem; color: var(--text-muted); }
+
+  /* ===== LOGIC DOC ===== */
+  .logic-step {
+    display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start;
+  }
+  .logic-num {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--accent-blue); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+  }
+  .logic-text { font-size: 0.78rem; color: var(--text-primary); flex: 1; }
+  .logic-text .hl { color: var(--accent-yellow); }
+  .logic-code {
+    background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 6px;
+    padding: 8px 11px; font-family: "SF Mono", monospace; font-size: 0.7rem; color: var(--accent-cyan);
+    margin-top: 5px; word-break: break-word; white-space: pre-wrap;
+  }
+  .map-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; margin-top: 8px; }
+  .map-table th, .map-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-color); text-align: left; }
+  .map-table th { color: var(--text-muted); font-weight: 600; font-size: 0.68rem; }
+  .map-table td { color: var(--text-primary); word-break: break-word; }
+
+  /* ===== SUMMARY TABLE ===== */
+  .summary-table-wrap { overflow-x: auto; }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 700px; }
+  .summary-table th {
+    background: var(--bg-secondary); color: var(--text-muted); font-weight: 600; font-size: 0.68rem;
+    padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap;
+  }
+  .summary-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+  .summary-table tr:hover td { background: var(--bg-card-hover); }
+  .summary-table .grp { font-weight: 800; color: var(--accent-blue); }
+
+  .info-banner {
+    background: linear-gradient(135deg, rgba(74,158,255,0.1), rgba(168,85,247,0.08));
+    border: 1px solid rgba(74,158,255,0.25); border-radius: 10px; padding: 12px 14px;
+    font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 16px;
+  }
+  .info-banner b { color: var(--text-primary); }
+
+  /* ===== v4: REGENERATE PANEL ===== */
+  .regen-panel {
+    background: var(--bg-deep); border: 1px solid var(--border-accent);
+    border-radius: 10px; padding: 14px; margin-top: 14px;
+  }
+  .regen-panel-title {
+    font-size: 0.82rem; font-weight: 700; color: var(--accent-cyan);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .regen-row {
+    display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .regen-row label {
+    font-size: 0.7rem; color: var(--text-muted); min-width: 90px; flex-shrink: 0;
+  }
+  .regen-row input[type="number"], .regen-row select {
+    background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);
+    border-radius: 6px; padding: 5px 8px; font-size: 0.75rem; font-family: inherit;
+    min-width: 80px;
+  }
+  .regen-row input[type="number"] { width: 80px; }
+  .regen-row input[type="text"] { width: 100%; }
+  .regen-row input:focus, .regen-row select:focus, .regen-row textarea:focus {
+    outline: none; border-color: var(--accent-blue);
+  }
+  .regen-row textarea {
+    background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);
+    border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    width: 100%; min-height: 60px; resize: vertical; line-height: 1.5;
+  }
+  .regen-info {
+    font-size: 0.65rem; color: var(--accent-yellow); background: rgba(255,165,2,0.08);
+    border-radius: 4px; padding: 3px 8px; margin-left: 6px;
+  }
+  .regen-curl-output {
+    background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;
+    padding: 10px; font-family: "SF Mono", "Menlo", "Consolas", monospace; font-size: 0.68rem;
+    color: var(--accent-cyan); white-space: pre-wrap; word-break: break-all; line-height: 1.6;
+    max-height: 300px; overflow-y: auto; margin-top: 10px;
+  }
+  .regen-curl-output.hidden { display: none; }
+  .regen-task-row {
+    display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap;
+  }
+  .regen-task-row input[type="text"] {
+    flex: 1; min-width: 200px; background: var(--bg-secondary); border: 1px solid var(--border-color);
+    color: var(--text-primary); border-radius: 6px; padding: 5px 8px; font-size: 0.75rem; font-family: "SF Mono", monospace;
+  }
+  .regen-task-row input[type="text"]:focus { outline: none; border-color: var(--accent-blue); }
+
+  /* ===== SEVERITY ===== */
+  .severity-select {
+    background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);
+    border-radius: 6px; padding: 5px 8px; font-size: 0.75rem; font-family: inherit;
+  }
+  .severity-badge {
+    font-size: 0.58rem; padding: 1px 6px; border-radius: 8px; font-weight: 600; margin-left: 4px;
+  }
+  .sev-fatal { background: rgba(255,71,87,0.2); color: var(--accent-red); }
+  .sev-severe { background: rgba(255,107,53,0.2); color: var(--accent-orange); }
+  .sev-medium { background: rgba(255,165,2,0.2); color: var(--accent-yellow); }
+  .sev-minor { background: rgba(46,213,115,0.2); color: var(--accent-green); }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; background: var(--bg-card);
+    border: 1px solid var(--accent-green); color: var(--text-primary);
+    padding: 10px 18px; border-radius: 8px; font-size: 0.78rem; z-index: 9999;
+    opacity: 0; transform: translateY(10px); transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .debug-grid { grid-template-columns: 1fr; }
+    .groups-grid { grid-template-columns: 1fr 1fr; }
+    .video-wrap { max-height: 70vh; }
+    .header-stats { font-size: 0.68rem; gap: 10px; }
+    .tab-btn { font-size: 0.7rem; padding: 8px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <h1>第一章：敌帐 · 调试看板 v4</h1>
+      <div>
+        <span class="badge">DEBUG 模式</span>
+        <span class="badge sub">完整 API 数据</span>
+        <span class="badge v4">v4 重新生成</span>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat"><span class="stat-num">8</span>组 (A-H)</div>
+      <div class="stat"><span class="stat-num">15</span>个镜头</div>
+      <div class="stat"><span class="stat-num">85</span>s 总时长</div>
+      <div class="stat"><span class="stat-num">2048</span>帧总数</div>
+      <div class="stat"><span class="stat-num">720x1280</span>竖屏</div>
+      <div class="stat"><span class="stat-num" id="hdrAnnoCount">0</span>条标注</div>
+      <div class="stat"><span class="stat-num">agnes-video-v2.0</span>模型</div>
+    </div>
+  </div>
+</div>
+
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">分组导航 (A-H)</div>
+      <ul class="group-nav-list" id="groupNavList"></ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">标注筛选</div>
+      <select class="filter-select" id="filterCategory" onchange="applyFilter()">
+        <option value="">全部类别</option>
+      </select>
+      <select class="filter-select" id="filterSeverity" onchange="applyFilter()">
+        <option value="">全部严重程度</option>
+        <option value="fatal">致命</option>
+        <option value="severe">严重</option>
+        <option value="medium">中等</option>
+        <option value="minor">轻微</option>
+      </select>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">操作</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-small" onclick="switchTab('summary')">查看标注汇总</button>
+        <button class="btn btn-small" onclick="exportAllAnnotations()">导出全部标注</button>
+        <button class="btn btn-small" onclick="scrollToGroup('A')">跳到组 A</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('overview')">总览</button>
+      <button class="tab-btn" onclick="switchTab('debug')">逐组调试</button>
+      <button class="tab-btn" onclick="switchTab('summary')">标注汇总</button>
+    </div>
+
+    <!-- ===== TAB 1: OVERVIEW ===== -->
+    <div class="tab-content active" id="tab-overview">
+      <div class="info-banner">
+        本看板为 <b>v4 调试级别</b>，完整记录发送给 Agnes AI 视频生成 API 的全部数据。新增 <b>参数编辑 + 重新生成</b>面板：可调整任意组的 prompt、分辨率、时长等参数，一键复制 cURL 或 Python 请求代码，在终端执行即可重新提交。支持在视频时间轴上添加带时间戳的问题标注（含严重程度），所有标注可导出/导入 JSON。
+      </div>
+
+      <div class="subsection">
+        <div class="section-title">API 配置总览 <span class="count">POST https://apihub.agnes-ai.com/v1/videos</span></div>
+        <div class="card" id="apiConfigCard"></div>
+      </div>
+
+      <div class="subsection">
+        <div class="section-title">分组概览 <span class="count">8 组 · 15 镜头 · 85 秒</span></div>
+        <div class="groups-grid" id="groupsGrid"></div>
+      </div>
+
+      <div class="subsection">
+        <div class="section-title">Prompt 构建逻辑 <span class="count">build_group_prompt() 拆解</span></div>
+        <div class="card" id="logicCard"></div>
+      </div>
+
+      <div class="subsection">
+        <div class="section-title">角色数据 <span class="count">consistencyKey · voice</span></div>
+        <div class="card" id="charCard"></div>
+      </div>
+
+      <div class="subsection">
+        <div class="section-title">场景数据 <span class="count">3 个场景</span></div>
+        <div class="card" id="sceneCard"></div>
+      </div>
+
+      <div class="subsection">
+        <div class="section-title">情绪 → 表情 映射 <span class="count">MOOD_EXPRESSION_MAP</span></div>
+        <div class="card" id="moodCard"></div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 2: DEBUG ===== -->
+    <div class="tab-content" id="tab-debug">
+      <div id="debugContainer"></div>
+    </div>
+
+    <!-- ===== TAB 3: SUMMARY ===== -->
+    <div class="tab-content" id="tab-summary">
+      <div class="info-banner">
+        汇总所有分组的问题标注。所有标注保存在浏览器 localStorage 中（key: <b>plan_bd_annotations_v4</b>）。支持导出为 JSON 文件、从 JSON 文件导入。v4 新增 <b>严重程度</b>字段：致命/严重/中等/轻微。
+      </div>
+      <div class="btn-row" style="margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="exportAllAnnotations()">导出全部标注 (JSON)</button>
+        <label class="btn" style="cursor:pointer;">
+          导入标注 (JSON)
+          <input type="file" accept="application/json,.json" onchange="importAnnotations(event)" style="display:none;">
+        </label>
+        <button class="btn btn-danger" onclick="clearAllAnnotations()">清空全部标注</button>
+      </div>
+      <div class="section-title">标注汇总表 <span class="count" id="summaryCount">0 条</span></div>
+      <div class="summary-table-wrap">
+        <table class="summary-table" id="summaryTable"></table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+// DATA: API CONFIG
+// ============================================================
+const API_CONFIG = {
+  model: "agnes-video-v2.0",
+  endpoint: "https://apihub.agnes-ai.com/v1/videos",
+  width: 720,
+  height: 1280,
+  fps: 24,
+  api_key: "cpk-woRMxygEbhxYAXSL4NXsYdHhhUBzrMIeyl12UCY3YgQglw9e",
+  request_interval: 30,
+  poll_interval: 15,
+  negative_prompt: "blur, deformation, extra people, watermark, text, English speech, English voice, English lip sync, English language, English text, non-Chinese language, Japanese, Korean, exaggerated facial expression, face jitter, image distortion, floating objects, clipping, morphing, bad anatomy, extra limbs, wrinkles, forehead creases, frown lines"
+};
+
+// ============================================================
+// DATA: CHARACTERS
+// ============================================================
+const CHARACTERS = {
+  shen_zhao: {
+    name: "Shen Zhao (Lin Xiao)", role: "Main", age: 18, gender: "Female",
+    consistencyKey: "Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting",
+    voice: "Hoarse and raspy initially, steady and low-pitched, carrying a subtle mocking tone"
+  },
+  murong_yan: {
+    name: "Murong Yan", role: "Supporting", age: 36, gender: "Male",
+    consistencyKey: "Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic",
+    voice: "Deep, rough, sneering, commanding"
+  }
+};
+
+// ============================================================
+// DATA: SCENES
+// ============================================================
+const SCENES = {
+  scene0: {
+    name: "Enemy General's Leather Tent", label: "敌帐",
+    lighting: "Flickering tallow candles and iron brazier, dim amber and deep orange",
+    mood: "Oppressive, claustrophobic, tense",
+    description: "Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls"
+  },
+  scene1: {
+    name: "Enemy General's Leather Tent (Combat)", label: "敌帐战斗",
+    lighting: "Flickering tallow candles and iron brazier, dim amber and deep orange",
+    mood: "Explosive, fierce, lightning-fast",
+    description: "Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence"
+  },
+  scene2: {
+    name: "Northern Wasteland Stables at Night", label: "马厩",
+    lighting: "Cold moonlight and distant campfire glow, steel blue with warm orange highlights",
+    mood: "Urgent, desolate, expansive",
+    description: "Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles"
+  }
+};
+
+// ============================================================
+// DATA: MOOD -> EXPRESSION
+// ============================================================
+const MOOD_EXPRESSION_MAP = {
+  oppressive: "calm neutral expression, relaxed eyebrows, soft gaze",
+  tense: "slightly furrowed brows, tense jaw, eyes darting subtly",
+  explosive: "slightly furrowed brows, tense jaw, eyes darting subtly",
+  urgent: "bright eyes, open smile, energetic gaze",
+  determined: "bright eyes, open smile, energetic gaze"
+};
+
+// ============================================================
+// DATA: 15 SHOTS
+// ============================================================
+const SHOTS = {
+  1:  { shot_type:"wide", camera_move:"static", camera_angle:"slight_overhead", scene:"scene0", characters:[], description:"荒原夜色中破旧牛皮营帐在风沙中摇晃，帐内烛火摇曳透出暗红光影", description_en:"A worn leather military tent sways in the wind and sand of the desolate northern wasteland at night, flickering candlelight casts dim reddish glow through the tent walls", dialogue:null, mood:"oppressive" },
+  2:  { shot_type:"medium_close", camera_move:"push_in", camera_angle:"eye_level", scene:"scene0", characters:["shen_zhao"], description:"沈昭浑身是血被铁链锁在木桩上，头垂得很低，红色嫁衣破烂沾满泥泞", description_en:"Shen Zhao covered in blood, chained to a wooden post, head hanging low, torn red bridal gown stained with mud and dirt, iron chains on wrists", dialogue:null, mood:"oppressive" },
+  3:  { shot_type:"close", camera_move:"static", camera_angle:"eye_level_side", scene:"scene0", characters:["shen_zhao","murong_yan"], description:"敌将Murong Yan捏住沈昭下巴，居高临下，右手绷带可见轻微颤抖", description_en:"Enemy general Murong Yan grabs Shen Zhao's chin from above, looking down condescendingly, his right hand bandaged and trembling slightly, dominant posture", dialogue:{speaker:"Murong Yan",text:"这就是大周送来的女人？细皮嫩肉，不如便宜本将。"}, mood:"oppressive" },
+  4:  { shot_type:"closeup", camera_move:"static", camera_angle:"eye_level", scene:"scene0", characters:["shen_zhao"], description:"沈昭猛然睁眼，眼神锐利审视，毫无恐惧，只有战术分析的光芒", description_en:"Shen Zhao suddenly opens her eyes, sharp analytical gaze, no fear in her expression, only the cold light of tactical assessment", dialogue:null, mood:"tense" },
+  5:  { shot_type:"medium_close", camera_move:"lateral_track", camera_angle:"eye_level", scene:"scene0", characters:["shen_zhao","murong_yan"], description:"沈昭嘴角微扬，声音沙哑却带笑，敌将愣住", description_en:"Shen Zhao's lips curl into a slight smile, her hoarse voice carrying a mocking tone, the enemy general freezes in stunned surprise", dialogue:{speaker:"Shen Zhao",text:"将军。你腰上有旧伤吧？"}, mood:"tense" },
+  6:  { shot_type:"close", camera_move:"push_in", camera_angle:"slight_overhead", scene:"scene1", characters:["shen_zhao","murong_yan"], description:"沈昭猛地抬起被锁住的双手，铁链如毒蛇般缠上Murong Yan的脖颈", description_en:"Shen Zhao violently raises her chained hands, the iron chains coil around Murong Yan's neck like a venomous snake, sudden explosive action, chains pulling taut", dialogue:null, mood:"explosive" },
+  7:  { shot_type:"medium_close", camera_move:"tracking", camera_angle:"eye_level_side", scene:"scene1", characters:["shen_zhao","murong_yan"], description:"借敌将俯身惯性，沈昭猛力下拽，咔嚓一声敌将倒地，沈昭顺手拔出腰间弯刀", description_en:"Using the general's forward momentum, Shen Zhao yanks down violently, a sharp crack as the enemy general falls to the ground, Shen Zhao swiftly pulls the curved sword from his waist", dialogue:null, mood:"explosive" },
+  8:  { shot_type:"closeup", camera_move:"static", camera_angle:"eye_level", scene:"scene1", characters:["shen_zhao"], description:"弯刀寒光一闪，割断沈昭腕上绳索，铁链落地", description_en:"The curved sword flashes cold light, slicing through the ropes on Shen Zhao's wrists, iron chains falling to the ground with a heavy clatter", dialogue:null, mood:"explosive" },
+  9:  { shot_type:"medium", camera_move:"lateral_track", camera_angle:"eye_level", scene:"scene1", characters:["shen_zhao"], description:"第一刀劈向左侧灯台，烛火熄灭，帐内骤然一暗；第二刀砍断右侧皮甲绑绳", description_en:"First slash strikes the left lamp stand, candles extinguish, the tent plunges into sudden darkness; second slash cuts the binding ropes of the leather armor pile on the right", dialogue:null, mood:"explosive" },
+  10: { shot_type:"medium", camera_move:"static", camera_angle:"slight_overhead", scene:"scene1", characters:["shen_zhao"], description:"两名亲兵冲进帐内，被倒塌的皮甲绊倒，混乱中沈昭矮身从身旁掠过", description_en:"Two guards rush into the tent, tripped by the collapsed leather armor pile, in the chaos Shen Zhao ducks low and slips past them", dialogue:null, mood:"explosive" },
+  11: { shot_type:"close", camera_move:"tracking", camera_angle:"eye_level_side", scene:"scene1", characters:["shen_zhao"], description:"沈昭冲出帐门，披风在风中猎猎作响，眼神冷峻如刀", description_en:"Shen Zhao bursts through the tent entrance, her cloak flapping fiercely in the wind, eyes cold and sharp as blades", dialogue:null, mood:"urgent" },
+  12: { shot_type:"medium", camera_move:"tracking", camera_angle:"eye_level", scene:"scene2", characters:["shen_zhao"], description:"沈昭十步外翻身上黑马，双腿一夹，骏马嘶鸣冲出马厩", description_en:"Shen Zhao leaps onto a black warhorse from ten paces away, squeezes with her legs, the stallion neighs and charges out of the stable", dialogue:null, mood:"urgent" },
+  13: { shot_type:"wide", camera_move:"static", camera_angle:"slight_overhead", scene:"scene2", characters:["shen_zhao"], description:"身后号角骤响，追兵火把亮起。沈昭伏低身子，紧贴马背在荒原上疾驰", description_en:"Horns blare behind her, pursuers' torches ignite. Shen Zhao crouches low, pressing against the horse's back, galloping across the wasteland at full speed", dialogue:null, mood:"urgent" },
+  14: { shot_type:"closeup", camera_move:"static", camera_angle:"eye_level_side", scene:"scene2", characters:["shen_zhao"], description:"夜风掠过沈昭侧脸，她嘴角微微一扬，目光坚定", description_en:"Night wind sweeps across Shen Zhao's profile, the corner of her mouth lifts slightly, her gaze resolute and unwavering", dialogue:null, mood:"determined" },
+  15: { shot_type:"extreme_wide", camera_move:"pull_back", camera_angle:"eye_level", scene:"scene2", characters:["shen_zhao"], description:"黑马化作夜色中的黑点，迅速融入苍茫荒原", description_en:"The black horse becomes a tiny speck in the darkness, swiftly disappearing into the vast desolate wasteland", dialogue:{speaker:"Shen Zhao",text:"北境是吧？我来了。"}, mood:"determined" }
+};
+
+// ============================================================
+// DATA: 8 GROUPS (v4 with CDN URL)
+// ============================================================
+const GROUPS = [
+  { id:"A", shotEntries:[[1,0,6],[2,6,11]], duration:11, numFrames:265,
+    video:"videos/group_A.mp4",
+    cdnUrl:"https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/task_5jfByeuSfYJf2FFVgXSqtsjlhW50YbEm.mp4",
+    hasCdn: true },
+  { id:"B", shotEntries:[[3,0,7],[4,7,11]], duration:11, numFrames:265,
+    video:"videos/group_B.mp4", cdnUrl:null, hasCdn:false },
+  { id:"C", shotEntries:[[5,0,7],[6,7,11]], duration:11, numFrames:265,
+    video:"videos/group_C.mp4", cdnUrl:null, hasCdn:false },
+  { id:"D", shotEntries:[[7,0,6],[8,6,10]], duration:10, numFrames:241,
+    video:"videos/group_D.mp4", cdnUrl:null, hasCdn:false },
+  { id:"E", shotEntries:[[9,0,6],[10,6,12]], duration:12, numFrames:289,
+    video:"videos/group_E.mp4", cdnUrl:null, hasCdn:false },
+  { id:"F", shotEntries:[[11,0,5],[12,5,11]], duration:11, numFrames:265,
+    video:"videos/group_F.mp4", cdnUrl:null, hasCdn:false },
+  { id:"G", shotEntries:[[13,0,7],[14,7,11]], duration:11, numFrames:265,
+    video:"videos/group_G.mp4", cdnUrl:null, hasCdn:false },
+  { id:"H", shotEntries:[[15,0,8]], duration:8, numFrames:193,
+    video:"videos/group_H.mp4", cdnUrl:null, hasCdn:false }
+];
+
+// ============================================================
+// DATA: PROGRESS (from progress.json)
+// ============================================================
+const PROGRESS = {
+  started_at: "2026-07-22T09:07:46",
+  completed_at: "2026-07-22T10:08:38",
+  groups: {
+    group_A: { status:"completed", task_id:"task_5jfByeuSfYJf2FFVgXSqtsjlhW50YbEm", prompt_length: 1612 },
+    group_B: { status:"completed", started_at:"2026-07-22T09:17:56", completed_at:"2026-07-22T09:22:33", shots:[3,4], duration:11, num_frames:265, prompt_length:2152, file_size:2218145 },
+    group_C: { status:"completed", started_at:"2026-07-22T09:23:03", completed_at:"2026-07-22T09:28:14", shots:[5,6], duration:11, num_frames:265, prompt_length:2533, file_size:3297342 },
+    group_D: { status:"completed", started_at:"2026-07-22T09:28:44", completed_at:"2026-07-22T09:34:34", shots:[7,8], duration:10, num_frames:241, prompt_length:2012, file_size:2945128 },
+    group_E: { status:"completed", started_at:"2026-07-22T09:35:04", completed_at:"2026-07-22T09:40:31", shots:[9,10], duration:12, num_frames:289, prompt_length:1724, file_size:3603690 },
+    group_F: { status:"completed", started_at:"2026-07-22T09:41:01", completed_at:"2026-07-22T09:56:56", shots:[11,12], duration:11, num_frames:265, prompt_length:1695, file_size:4111900 },
+    group_G: { status:"completed", started_at:"2026-07-22T09:57:26", completed_at:"2026-07-22T10:02:28", shots:[13,14], duration:11, num_frames:265, prompt_length:1711, file_size:3105064 },
+    group_H: { status:"completed", started_at:"2026-07-22T10:02:58", completed_at:"2026-07-22T10:08:38", shots:[15], duration:8, num_frames:193, prompt_length:1038, file_size:1716568 }
+  }
+};
+
+// ============================================================
+// DATA: FULL PROMPT TEXTS (verbatim from prompt files)
+// ============================================================
+const PROMPTS = {
+A: `0-6s: wide shot, static camera, eye-level angle. Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. Action: A worn leather military tent sways in the wind and sand of the desolate northern wasteland at night, flickering candlelight casts dim reddish glow through the tent walls. Expression: calm neutral expression, relaxed eyebrows, soft gaze. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin). The action continues with the next moment. 6-11s: medium close-up shot, slow push-in camera movement, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao covered in blood, chained to a wooden post, head hanging low, torn red bridal gown stained with mud and dirt, iron chains on wrists. Expression: calm neutral expression, relaxed eyebrows, soft gaze. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin).`,
+B: `0-7s: close-up shot, static camera, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Enemy general Murong Yan grabs Shen Zhao's chin from above, looking down condescendingly, his right hand bandaged and trembling slightly, dominant posture. Murong Yan is speaking in Mandarin Chinese (speaker: Murong Yan, role: Supporting, is speaking, speaking with voice: Deep, rough, sneering, commanding). Chinese dialogue: "这就是大周送来的女人？细皮嫩肉，不如便宜本将。". Expression: calm neutral expression, relaxed eyebrows, soft gaze. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin). The action continues with the next moment. 7-11s: extreme close-up shot, static camera, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao suddenly opens her eyes, sharp analytical gaze, no fear in her expression, only the cold light of tactical assessment. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin).`,
+C: `0-7s: medium close-up shot, lateral tracking shot, camera sliding horizontally, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Shen Zhao's lips curl into a slight smile, her hoarse voice carrying a mocking tone, the enemy general freezes in stunned surprise. Shen Zhao is speaking in Mandarin Chinese (speaker: Shen Zhao, role: Main, is speaking, speaking with voice: Hoarse and raspy initially, steady and low-pitched, carrying a subtle mocking tone). Chinese dialogue: "将军。你腰上有旧伤吧？". Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles, dim amber and deep orange lighting, heavy atmosphere of blood, leather and sweat, shadows dancing on canvas walls. All characters speak Chinese (Mandarin). The atmosphere shifts to explosive combat intensity. 7-11s: close-up shot, slow push-in camera movement, slight high angle, looking down. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Shen Zhao violently raises her chained hands, the iron chains coil around Murong Yan's neck like a venomous snake, sudden explosive action, chains pulling taut. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin).`,
+D: `0-6s: medium close-up shot, tracking shot following the subject, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Middle-aged male warrior, broad muscular build, rugged face, short beard, northern tribal leather armor, fur collar, curved sword, right hand bandaged, arrogant expression, dimly lit leather tent background, cinematic. Action: Using the general's forward momentum, Shen Zhao yanks down violently, a sharp crack as the enemy general falls to the ground, Shen Zhao swiftly pulls the curved sword from his waist. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Murong Yan maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin). The action continues with the next moment. 6-10s: extreme close-up shot, static camera, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: The curved sword flashes cold light, slicing through the ropes on Shen Zhao's wrists, iron chains falling to the ground with a heavy clatter. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin).`,
+E: `0-6s: medium shot, lateral tracking shot, camera sliding horizontally, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: First slash strikes the left lamp stand, candles extinguish, the tent plunges into sudden darkness; second slash cuts the binding ropes of the leather armor pile on the right. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin). The action continues with the next moment. 6-12s: medium shot, static camera, slight high angle, looking down. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Two guards rush into the tent, tripped by the collapsed leather armor pile, in the chaos Shen Zhao ducks low and slips past them. Expression: slightly furrowed brows, tense jaw, eyes darting subtly. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin).`,
+F: `0-5s: close-up shot, tracking shot following the subject, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao bursts through the tent entrance, her cloak flapping fiercely in the wind, eyes cold and sharp as blades. Expression: bright eyes, open smile, energetic gaze. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Northern Tribal Military Command Tent, rugged barbaric interior, flickering tallow candles with violent shadow movement, dim amber and deep orange, atmosphere of explosive combat and sudden violence. All characters speak Chinese (Mandarin). The scene transitions from the tent to the open wasteland outside. 5-11s: medium shot, tracking shot following the subject, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Shen Zhao leaps onto a black warhorse from ten paces away, squeezes with her legs, the stallion neighs and charges out of the stable. Expression: bright eyes, open smile, energetic gaze. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin).`,
+G: `0-7s: wide shot, static camera, slight high angle, looking down. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Horns blare behind her, pursuers' torches ignite. Shen Zhao crouches low, pressing against the horse's back, galloping across the wasteland at full speed. Expression: bright eyes, open smile, energetic gaze. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin). The action continues with the next moment. 7-11s: extreme close-up shot, static camera, eye-level side angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: Night wind sweeps across Shen Zhao's profile, the corner of her mouth lifts slightly, her gaze resolute and unwavering. Expression: bright eyes, open smile, energetic gaze. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin).`,
+H: `0-8s: extreme wide shot, slow pull-back camera movement, eye-level angle. Young Chinese woman, slender build, pale skin with blood smears, messy long black hair, torn red ancient wedding dress, iron chains on wrists, sharp calculating eyes, ancient leather tent interior, cinematic lighting. Action: The black horse becomes a tiny speck in the darkness, swiftly disappearing into the vast desolate wasteland. Shen Zhao is speaking in Mandarin Chinese (speaker: Shen Zhao, role: Main, is speaking, speaking with voice: Hoarse and raspy initially, steady and low-pitched, carrying a subtle mocking tone). Chinese dialogue: "北境是吧？我来了。". Expression: bright eyes, open smile, energetic gaze. Shen Zhao (Lin Xiao) maintains exact same clothing and appearance. Scene: Open-Air Nomadic Stable at night, cold moonlight, distant campfire glow, steel blue shadows with warm orange highlights, howling wind carrying sand, vast empty northern frontier, wooden horse stalls, coiled ropes, rough leather saddles. All characters speak Chinese (Mandarin).`
+};
+
+// ============================================================
+// PROMPT BUILD FUNCTIONS (mirror of run_plan_bd.py)
+// ============================================================
+const TYPE_MAP = { extreme_wide:"extreme wide shot", wide:"wide shot", medium:"medium shot", medium_close:"medium close-up shot", close:"close-up shot", closeup:"extreme close-up shot" };
+const MOVE_MAP = { static:"static camera", push_in:"slow push-in camera movement", pull_back:"slow pull-back camera movement", lateral_track:"lateral tracking shot, camera sliding horizontally", tracking:"tracking shot following the subject", pan:"panning shot" };
+const ANGLE_MAP = { eye_level:"eye-level angle", eye_level_side:"eye-level side angle", slight_overhead:"slight high angle, looking down", low_angle:"low angle, looking up", overhead:"overhead top-down angle" };
+const SAME_LOCATION_GROUPS = ["scene0","scene1"];
+
+function buildCameraInstruction(shot) {
+  return `${TYPE_MAP[shot.shot_type]||"medium shot"}, ${MOVE_MAP[shot.camera_move]||"static camera"}, ${ANGLE_MAP[shot.camera_angle]||"eye-level angle"}`;
+}
+function buildSubjectSegment(charKeys) {
+  if (!charKeys || charKeys.length === 0) return null;
+  return charKeys.map(ck => CHARACTERS[ck].consistencyKey).join(". ");
+}
+function buildDialogueAction(shot) {
+  if (!shot.dialogue) return null;
+  const dlg = shot.dialogue;
+  let charKey = null;
+  for (const ck in CHARACTERS) { if (CHARACTERS[ck].name === dlg.speaker) { charKey = ck; break; } }
+  if (!charKey) charKey = "shen_zhao";
+  const ch = CHARACTERS[charKey];
+  return `${dlg.speaker} is speaking in Mandarin Chinese (speaker: ${dlg.speaker}, role: ${ch.role}, is speaking, speaking with voice: ${ch.voice}). Chinese dialogue: "${dlg.text}"`;
+}
+function buildClothing(charKeys) {
+  if (!charKeys || charKeys.length === 0) return null;
+  return charKeys.map(ck => `${CHARACTERS[ck].name} maintains exact same clothing and appearance`).join(". ");
+}
+function getTransition(shotFromNum, shotToNum) {
+  const sf = SHOTS[shotFromNum].scene, st = SHOTS[shotToNum].scene;
+  if (sf === st) return "The action continues with the next moment.";
+  if (SAME_LOCATION_GROUPS.includes(sf) && SAME_LOCATION_GROUPS.includes(st)) return "The atmosphere shifts to explosive combat intensity.";
+  return "The scene transitions from the tent to the open wasteland outside.";
+}
+
+// ============================================================
+// ANNOTATION STORAGE (localStorage)
+// ============================================================
+const ANNO_KEY = "plan_bd_annotations_v4";
+const CATEGORIES = ["角色朝向","镜头切换","动作准确性","场景一致性","表情情绪","其他"];
+const SEVERITIES = ["fatal","severe","medium","minor"];
+const SEVERITY_LABELS = {fatal:"致命",severe:"严重",medium:"中等",minor:"轻微"};
+function loadAnnotations() {
+  try { return JSON.parse(localStorage.getItem(ANNO_KEY) || "{}"); }
+  catch(e) { return {}; }
+}
+function saveAnnotations(data) {
+  localStorage.setItem(ANNO_KEY, JSON.stringify(data));
+}
+function getGroupAnnotations(groupId) {
+  const all = loadAnnotations();
+  return all[groupId] || [];
+}
+function setGroupAnnotations(groupId, list) {
+  const all = loadAnnotations();
+  all[groupId] = list;
+  saveAnnotations(all);
+}
+function countAllAnnotations() {
+  const all = loadAnnotations();
+  let n = 0;
+  for (const g in all) n += (all[g]||[]).length;
+  return n;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function esc(s) {
+  if (s == null) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function escAttr(s) {
+  if (s == null) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function fmtTime(sec) {
+  if (sec == null || isNaN(sec)) return "0.0s";
+  return sec.toFixed(1) + "s";
+}
+function fmtBytes(b) {
+  if (!b) return "-";
+  if (b > 1048576) return (b/1048576).toFixed(2) + " MB";
+  if (b > 1024) return (b/1024).toFixed(1) + " KB";
+  return b + " B";
+}
+function fmtDur(iso) {
+  if (!iso) return "-";
+  return iso.replace("T"," ").split(".")[0];
+}
+function catColorClass(cat) {
+  const idx = CATEGORIES.indexOf(cat);
+  return "cat-color-" + (idx < 0 ? 5 : idx);
+}
+function sevClass(sev) {
+  return "sev-" + (sev || "minor");
+}
+function sevLabel(sev) {
+  return SEVERITY_LABELS[sev] || sev || "轻微";
+}
+function highlightPrompt(text) {
+  let html = esc(text);
+  html = html.replace(/(\d+-\d+s:)/g, '<span class="seg-time">$1</span>');
+  html = html.replace(/(The action continues with the next moment\.|The atmosphere shifts to explosive combat intensity\.|The scene transitions from the tent to the open wasteland outside\.)/g, '<span class="seg-trans">$1</span>');
+  return html;
+}
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2500);
+}
+
+// ============================================================
+// NUM_FRAMES CALCULATION (8n+1 constraint)
+// ============================================================
+function calcNearest8n1(duration, fps) {
+  // num_frames = duration * fps + 1, then find nearest 8n+1
+  const raw = duration * fps + 1;
+  const n = Math.round((raw - 1) / 8);
+  return Math.max(1, n * 8 + 1);
+}
+function actualDurationFromFrames(numFrames, fps) {
+  return ((numFrames - 1) / fps).toFixed(2);
+}
+
+// ============================================================
+// RENDER: SIDEBAR NAV
+// ============================================================
+function renderGroupNav() {
+  const ul = document.getElementById("groupNavList");
+  ul.innerHTML = GROUPS.map(g => {
+    const shots = g.shotEntries.map(e => e[0]);
+    const cnt = getGroupAnnotations(g.id).length;
+    return `<li class="group-nav-item" onclick="scrollToGroup('${g.id}')">
+      <div class="group-nav-letter">${g.id}</div>
+      <div class="group-nav-info">
+        <div class="group-nav-shots">镜头 ${shots.join("+")}</div>
+        <div class="group-nav-meta">${g.duration}s · ${g.numFrames}帧${g.hasCdn ? " · CDN" : ""}</div>
+      </div>
+      <span class="group-nav-count ${cnt===0?'zero':''}">${cnt}</span>
+    </li>`;
+  }).join("");
+}
+
+// ============================================================
+// RENDER: FILTER CATEGORY OPTIONS
+// ============================================================
+function renderFilterOptions() {
+  const sel = document.getElementById("filterCategory");
+  sel.innerHTML = '<option value="">全部类别</option>' +
+    CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
+}
+
+// ============================================================
+// RENDER: OVERVIEW TAB
+// ============================================================
+function renderApiConfig() {
+  const card = document.getElementById("apiConfigCard");
+  const keyPartial = API_CONFIG.api_key.substring(0, 12) + "..." + API_CONFIG.api_key.substring(API_CONFIG.api_key.length - 8);
+  card.innerHTML = `
+    <table class="kv-table">
+      <tr><td>model</td><td><span class="code-inline">${esc(API_CONFIG.model)}</span></td></tr>
+      <tr><td>endpoint</td><td><span class="code-inline">${esc(API_CONFIG.endpoint)}</span></td></tr>
+      <tr><td>width</td><td><span class="code-inline">${API_CONFIG.width}</span></td></tr>
+      <tr><td>height</td><td><span class="code-inline">${API_CONFIG.height}</span></td></tr>
+      <tr><td>fps</td><td><span class="code-inline">${API_CONFIG.fps}</span></td></tr>
+      <tr><td>API Key</td><td><span class="code-inline">Bearer ${esc(keyPartial)}</span></td></tr>
+      <tr><td>negative_prompt</td><td class="mono" style="font-size:0.7rem;">${esc(API_CONFIG.negative_prompt)}</td></tr>
+      <tr><td>request_interval</td><td>${API_CONFIG.request_interval}s (组间等待)</td></tr>
+      <tr><td>poll_interval</td><td>${API_CONFIG.poll_interval}s (状态轮询)</td></tr>
+    </table>`;
+}
+
+function renderGroupsGrid() {
+  const grid = document.getElementById("groupsGrid");
+  grid.innerHTML = GROUPS.map(g => {
+    const shots = g.shotEntries.map(e => e[0]);
+    const pg = PROGRESS.groups["group_"+g.id] || {};
+    const cnt = getGroupAnnotations(g.id).length;
+    return `<div class="group-card" onclick="switchTab('debug'); setTimeout(()=>scrollToGroup('${g.id}'),60);">
+      <div class="group-card-head">
+        <div class="group-card-id">${g.id}</div>
+        <div class="group-card-status completed">已完成</div>
+      </div>
+      <div class="group-card-row"><span class="lbl">镜头</span>${shots.join(" + ")}</div>
+      <div class="group-card-row"><span class="lbl">时长</span>${g.duration}s</div>
+      <div class="group-card-row"><span class="lbl">帧数</span>${g.numFrames} 帧</div>
+      <div class="group-card-row"><span class="lbl">Prompt</span>${(pg.prompt_length||PROMPTS[g.id].length)} 字符</div>
+      <div class="group-card-row"><span class="lbl">文件</span>${fmtBytes(pg.file_size)}</div>
+      <div class="group-card-row"><span class="lbl">CDN</span><span class="cdn-badge ${g.hasCdn?'has':'missing'}">${g.hasCdn?'CDN 可用':'CDN 未记录'}</span></div>
+      <div class="group-card-row"><span class="lbl">标注</span><span style="color:${cnt? 'var(--accent-red)':'var(--text-muted)'};font-weight:600;">${cnt} 条</span></div>
+    </div>`;
+  }).join("");
+}
+
+function renderLogicCard() {
+  const card = document.getElementById("logicCard");
+  card.innerHTML = `
+    <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:14px;">
+      每组 prompt 由 <b style="color:var(--text-primary);">build_group_prompt()</b> 构建：遍历组内每个镜头，调用 <span class="code-inline">build_single_shot_prompt()</span> 生成一个时间段片段，片段之间插入转场短语，最后用空格拼接。
+    </p>
+    <div class="logic-step">
+      <div class="logic-num">1</div>
+      <div class="logic-text">
+        <b>构建单镜头片段</b>（<span class="hl">build_single_shot_prompt</span>）：
+        <div class="logic-code">{start}s-{end}s: {camera_instruction}. {subject_description}. Action: {action_description}. {dialogue_action}. Expression: {expression}. {clothing_maintenance}. Scene: {scene_description}. All characters speak Chinese (Mandarin).</div>
+      </div>
+    </div>
+    <div class="logic-step">
+      <div class="logic-num">2</div>
+      <div class="logic-text">
+        <b>camera_instruction</b> 由 <span class="hl">build_camera_instruction()</span> 生成：景别 + 运镜 + 机位角度
+      </div>
+    </div>
+    <div class="logic-step">
+      <div class="logic-num">3</div>
+      <div class="logic-text">
+        <b>subject_description</b>：角色的 <span class="code-inline">consistencyKey</span>，无角色则回退使用场景描述
+      </div>
+    </div>
+    <div class="logic-step">
+      <div class="logic-num">4</div>
+      <div class="logic-text">
+        <b>dialogue_action</b>：仅当镜头有对话时生成，含说话人、角色、音色与中文台词
+      </div>
+    </div>
+    <div class="logic-step">
+      <div class="logic-num">5</div>
+      <div class="logic-text">
+        <b>Expression</b>：由镜头 mood 经 <span class="code-inline">MOOD_EXPRESSION_MAP</span> 映射
+      </div>
+    </div>
+    <div class="logic-step">
+      <div class="logic-num">6</div>
+      <div class="logic-text">
+        <b>转场短语</b>：
+        <table class="map-table">
+          <tr><th>场景关系</th><th>转场文案</th></tr>
+          <tr><td>同一场景</td><td>The action continues with the next moment.</td></tr>
+          <tr><td>同地点不同氛围</td><td>The atmosphere shifts to explosive combat intensity.</td></tr>
+          <tr><td>不同地点</td><td>The scene transitions from the tent to the open wasteland outside.</td></tr>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderCharCard() {
+  const card = document.getElementById("charCard");
+  card.innerHTML = Object.keys(CHARACTERS).map(ck => {
+    const ch = CHARACTERS[ck];
+    return `<table class="kv-table" style="margin-bottom:14px;">
+      <tr><td>key</td><td><span class="code-inline">${ck}</span></td></tr>
+      <tr><td>name</td><td>${esc(ch.name)}</td></tr>
+      <tr><td>role / age / gender</td><td>${ch.role} / ${ch.age} / ${ch.gender}</td></tr>
+      <tr><td>consistencyKey</td><td class="mono" style="font-size:0.7rem;">${esc(ch.consistencyKey)}</td></tr>
+      <tr><td>voice</td><td>${esc(ch.voice)}</td></tr>
+    </table>`;
+  }).join("");
+}
+
+function renderSceneCard() {
+  const card = document.getElementById("sceneCard");
+  card.innerHTML = Object.keys(SCENES).map(sk => {
+    const sc = SCENES[sk];
+    return `<table class="kv-table" style="margin-bottom:14px;">
+      <tr><td>key</td><td><span class="code-inline">${sk}</span> (${esc(sc.label)})</td></tr>
+      <tr><td>name</td><td>${esc(sc.name)}</td></tr>
+      <tr><td>lighting</td><td>${esc(sc.lighting)}</td></tr>
+      <tr><td>mood</td><td>${esc(sc.mood)}</td></tr>
+      <tr><td>description</td><td class="mono" style="font-size:0.7rem;">${esc(sc.description)}</td></tr>
+    </table>`;
+  }).join("");
+}
+
+function renderMoodCard() {
+  const card = document.getElementById("moodCard");
+  card.innerHTML = `<table class="map-table">
+    <tr><th>mood</th><th>expression</th></tr>
+    ${Object.keys(MOOD_EXPRESSION_MAP).map(m => `<tr><td><span class="code-inline">${m}</span></td><td>${esc(MOOD_EXPRESSION_MAP[m])}</td></tr>`).join("")}
+  </table>`;
+}
+
+// ============================================================
+// RENDER: DEBUG TAB (per-group cards with regen panel)
+// ============================================================
+function renderDebugTab() {
+  const container = document.getElementById("debugContainer");
+  container.innerHTML = GROUPS.map(g => renderDebugCard(g)).join("");
+  // attach video time listeners
+  GROUPS.forEach(g => {
+    const v = document.getElementById("vid_"+g.id);
+    if (v) {
+      v.addEventListener("timeupdate", () => updateVideoTime(g.id));
+      v.addEventListener("loadedmetadata", () => updateAnnoTimeline(g.id));
+      v.addEventListener("timeupdate", () => updateAnnoTimeline(g.id));
+    }
+    const tl = document.getElementById("tl_"+g.id);
+    if (tl) {
+      tl.addEventListener("click", (e) => {
+        const rect = tl.getBoundingClientRect();
+        const ratio = (e.clientX - rect.left) / rect.width;
+        const dur = v.duration || g.duration;
+        v.currentTime = ratio * dur;
+      });
+    }
+  });
+}
+
+function renderDebugCard(g) {
+  const shots = g.shotEntries.map(e => e[0]);
+  const pg = PROGRESS.groups["group_"+g.id] || {};
+  const promptText = PROMPTS[g.id];
+  const cnt = getGroupAnnotations(g.id).length;
+  const videoSrc = g.hasCdn ? g.cdnUrl : g.video;
+
+  return `<div class="debug-card" id="group_${g.id}">
+    <div class="debug-card-head">
+      <div class="debug-letter">${g.id}</div>
+      <div class="debug-head-info">
+        <div class="debug-head-title">组 ${g.id} · 镜头 ${shots.join(" + ")}</div>
+        <div class="debug-head-meta">${g.duration}s · ${g.numFrames} 帧 · ${pg.prompt_length||promptText.length} 字符 prompt · ${fmtBytes(pg.file_size)} · task: ${esc(pg.task_id||"-")}${g.hasCdn ? " · CDN" : " · CDN 未记录"}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="chip">${g.duration}s</span>
+        <span class="chip">${g.numFrames}f</span>
+        <span class="chip">${cnt} 标注</span>
+        <span class="cdn-badge ${g.hasCdn?'has':'missing'}">${g.hasCdn?'CDN':'local'}</span>
+      </div>
+    </div>
+    <div class="debug-card-body">
+      <div class="debug-grid">
+        <!-- LEFT: video + annotations -->
+        <div>
+          <div class="video-wrap">
+            <video id="vid_${g.id}" src="${esc(videoSrc)}" controls playsinline preload="metadata"></video>
+            <div class="video-label">组 ${g.id}</div>
+            <div class="video-time" id="vtime_${g.id}">0.0s / ${g.duration}.0s</div>
+            <div class="video-cdn-badge ${g.hasCdn?'has':'missing'}">${g.hasCdn?'CDN URL':'Local: '+g.video}</div>
+          </div>
+          <div class="anno-timeline" id="tl_${g.id}" title="点击时间轴跳转"></div>
+          <div class="anno-controls">
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="openAnnoForm('${g.id}')">+ 添加标注 (当前时间)</button>
+              <button class="btn btn-small" onclick="exportGroupAnnotations('${g.id}')">导出本组</button>
+            </div>
+            <div class="anno-form hidden" id="annoForm_${g.id}">
+              <div class="form-row">
+                <label>时间</label>
+                <input type="number" id="annoTime_${g.id}" step="0.1" min="0" max="${g.duration}" style="max-width:100px;">
+                <span style="font-size:0.68rem;color:var(--text-muted);">秒 (0 - ${g.duration})</span>
+              </div>
+              <div class="form-row">
+                <label>类别</label>
+                <select id="annoCat_${g.id}">
+                  ${CATEGORIES.map((c,i)=>`<option value="${c}">${c}</option>`).join("")}
+                </select>
+                <label style="min-width:70px;">严重程度</label>
+                <select id="annoSev_${g.id}" class="severity-select">
+                  <option value="minor">轻微</option>
+                  <option value="medium">中等</option>
+                  <option value="severe">严重</option>
+                  <option value="fatal">致命</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>描述</label>
+                <textarea id="annoDesc_${g.id}" placeholder="描述该时间点的问题..."></textarea>
+              </div>
+              <div class="btn-row" style="margin-bottom:0;">
+                <button class="btn btn-primary btn-small" onclick="saveAnnotation('${g.id}')">保存标注</button>
+                <button class="btn btn-small" onclick="closeAnnoForm('${g.id}')">取消</button>
+              </div>
+            </div>
+            <div class="anno-list" id="annoList_${g.id}"></div>
+          </div>
+        </div>
+        <!-- RIGHT: params + regen panel + prompt + breakdown -->
+        <div>
+          ${renderRegenPanel(g, pg)}
+          ${renderPromptBlock(g, promptText)}
+          ${renderBreakdown(g)}
+          ${renderShotDetails(g)}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// RENDER: REGENERATE PANEL (v4 new)
+// ============================================================
+function renderRegenPanel(g, pg) {
+  const promptText = PROMPTS[g.id];
+  const nf = calcNearest8n1(g.duration, API_CONFIG.fps);
+  const actualDur = actualDurationFromFrames(nf, API_CONFIG.fps);
+
+  return `<div class="regen-panel" id="regen_${g.id}">
+    <div class="regen-panel-title">重新生成面板 · 组 ${g.id}</div>
+    <div class="regen-row">
+      <label>duration</label>
+      <input type="number" id="regenDur_${g.id}" value="${g.duration}" min="1" max="17" step="1" onchange="onDurationChange('${g.id}')">
+      <span style="font-size:0.68rem;color:var(--text-muted);">秒 (1-17)</span>
+    </div>
+    <div class="regen-row">
+      <label>num_frames</label>
+      <input type="number" id="regenNF_${g.id}" value="${g.numFrames}" min="9" step="8" onchange="onNFChange('${g.id}')">
+      <span class="regen-info" id="regenNFInfo_${g.id}">(8n+1 约束) 实际时长: ${actualDur}s</span>
+    </div>
+    <div class="regen-row">
+      <label>width</label>
+      <select id="regenW_${g.id}">
+        <option value="720" ${API_CONFIG.width===720?'selected':''}>720</option>
+        <option value="1280" ${API_CONFIG.width===1280?'selected':''}>1280</option>
+        <option value="1920" ${API_CONFIG.width===1920?'selected':''}>1920</option>
+      </select>
+      <label>height</label>
+      <select id="regenH_${g.id}">
+        <option value="1280" ${API_CONFIG.height===1280?'selected':''}>1280</option>
+        <option value="720" ${API_CONFIG.height===720?'selected':''}>720</option>
+        <option value="1080" ${API_CONFIG.height===1080?'selected':''}>1080</option>
+      </select>
+    </div>
+    <div class="regen-row">
+      <label>fps</label>
+      <select id="regenFPS_${g.id}">
+        <option value="24" ${API_CONFIG.fps===24?'selected':''}>24</option>
+      </select>
+    </div>
+    <div class="regen-row">
+      <label>prompt</label>
+    </div>
+    <div class="regen-row">
+      <textarea id="regenPrompt_${g.id}" rows="4">${escAttr(promptText)}</textarea>
+    </div>
+    <div class="regen-row">
+      <label>negative_prompt</label>
+    </div>
+    <div class="regen-row">
+      <textarea id="regenNeg_${g.id}" rows="2">${escAttr(API_CONFIG.negative_prompt)}</textarea>
+    </div>
+    <div class="btn-row" style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="generateCurl('${g.id}')">生成 cURL 命令</button>
+      <button class="btn" onclick="generateJSON('${g.id}')">复制 API 请求 JSON</button>
+      <button class="btn" onclick="generatePython('${g.id}')">生成 Python 代码</button>
+    </div>
+    <div class="regen-curl-output hidden" id="regenOutput_${g.id}"></div>
+    <div class="regen-task-row">
+      <label style="font-size:0.7rem;color:var(--text-muted);min-width:70px;">Task ID</label>
+      <input type="text" id="regenTaskId_${g.id}" placeholder="粘贴返回的 task_id..." value="${esc(pg.task_id||'')}">
+      <button class="btn btn-success btn-small" onclick="applyTaskId('${g.id}')">查询 CDN URL</button>
+    </div>
+    <div id="taskResult_${g.id}" style="margin-top:6px;"></div>
+  </div>`;
+}
+
+function onDurationChange(groupId) {
+  const durEl = document.getElementById("regenDur_"+groupId);
+  const nfEl = document.getElementById("regenNF_"+groupId);
+  const infoEl = document.getElementById("regenNFInfo_"+groupId);
+  const dur = parseInt(durEl.value) || 1;
+  const fps = parseInt(document.getElementById("regenFPS_"+groupId).value) || 24;
+  const nf = calcNearest8n1(dur, fps);
+  nfEl.value = nf;
+  infoEl.textContent = `(8n+1 约束) 实际时长: ${actualDurationFromFrames(nf, fps)}s`;
+}
+function onNFChange(groupId) {
+  const nfEl = document.getElementById("regenNF_"+groupId);
+  const infoEl = document.getElementById("regenNFInfo_"+groupId);
+  const fps = parseInt(document.getElementById("regenFPS_"+groupId).value) || 24;
+  let nf = parseInt(nfEl.value) || 9;
+  // snap to nearest 8n+1
+  const n = Math.max(1, Math.round((nf - 1) / 8));
+  nf = n * 8 + 1;
+  nfEl.value = nf;
+  infoEl.textContent = `(8n+1 约束) 实际时长: ${actualDurationFromFrames(nf, fps)}s`;
+}
+
+function getRegenParams(groupId) {
+  return {
+    duration: parseInt(document.getElementById("regenDur_"+groupId).value) || 11,
+    num_frames: parseInt(document.getElementById("regenNF_"+groupId).value) || 265,
+    width: parseInt(document.getElementById("regenW_"+groupId).value) || 720,
+    height: parseInt(document.getElementById("regenH_"+groupId).value) || 1280,
+    fps: parseInt(document.getElementById("regenFPS_"+groupId).value) || 24,
+    prompt: document.getElementById("regenPrompt_"+groupId).value,
+    negative_prompt: document.getElementById("regenNeg_"+groupId).value
+  };
+}
+
+function generateCurl(groupId) {
+  const p = getRegenParams(groupId);
+  const payload = {
+    model: API_CONFIG.model,
+    prompt: p.prompt,
+    negative_prompt: p.negative_prompt,
+    width: p.width,
+    height: p.height,
+    fps: p.fps,
+    duration: p.duration,
+    num_frames: p.num_frames
+  };
+  const curl = `curl -X POST ${API_CONFIG.endpoint} \\\n  -H "Authorization: Bearer ${API_CONFIG.api_key}" \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(payload)}'`;
+
+  const el = document.getElementById("regenOutput_"+groupId);
+  el.classList.remove("hidden");
+  el.innerHTML = `<div style="margin-bottom:8px;font-size:0.72rem;color:var(--accent-yellow);font-weight:600;">cURL 命令 (在终端执行)</div>` +
+    `<pre style="color:var(--accent-cyan);white-space:pre-wrap;word-break:break-all;font-size:0.7rem;line-height:1.6;">${esc(curl)}</pre>` +
+    `<div class="btn-row" style="margin-top:8px;">
+      <button class="btn btn-primary btn-small" onclick="copyToClipboard(\`${esc(curl.replace(/`/g,"\\`").replace(/\\/g,"\\\\").replace(/\$/g,"\\$"))}\`);showToast('cURL 已复制到剪贴板')">复制 cURL</button>
+      <button class="btn btn-small" onclick="document.getElementById('regenOutput_${groupId}').classList.add('hidden')">关闭</button>
+    </div>`;
+}
+
+function generateJSON(groupId) {
+  const p = getRegenParams(groupId);
+  const payload = {
+    model: API_CONFIG.model,
+    prompt: p.prompt,
+    negative_prompt: p.negative_prompt,
+    width: p.width,
+    height: p.height,
+    fps: p.fps,
+    duration: p.duration,
+    num_frames: p.num_frames
+  };
+  const json = JSON.stringify(payload, null, 2);
+  copyToClipboard(json);
+  showToast("API 请求 JSON 已复制到剪贴板");
+}
+
+function generatePython(groupId) {
+  const p = getRegenParams(groupId);
+  const code = `import requests
+
+response = requests.post(
+    "${API_CONFIG.endpoint}",
+    headers={
+        "Authorization": "Bearer ${API_CONFIG.api_key}",
+        "Content-Type": "application/json"
+    },
+    json={
+        "model": "${API_CONFIG.model}",
+        "prompt": """${p.prompt.replace(/"/g, '\\"')}""",
+        "negative_prompt": """${p.negative_prompt.replace(/"/g, '\\"')}""",
+        "width": ${p.width},
+        "height": ${p.height},
+        "fps": ${p.fps},
+        "duration": ${p.duration},
+        "num_frames": ${p.num_frames}
+    }
+)
+print(response.status_code)
+print(response.json())`;
+
+  const el = document.getElementById("regenOutput_"+groupId);
+  el.classList.remove("hidden");
+  el.innerHTML = `<div style="margin-bottom:8px;font-size:0.72rem;color:var(--accent-green);font-weight:600;">Python 代码</div>` +
+    `<pre style="color:var(--accent-green);white-space:pre-wrap;word-break:break-all;font-size:0.7rem;line-height:1.6;">${esc(code)}</pre>` +
+    `<div class="btn-row" style="margin-top:8px;">
+      <button class="btn btn-success btn-small" onclick="copyToClipboard(\`${esc(code.replace(/`/g,"\\`").replace(/\\/g,"\\\\").replace(/\$/g,"\\$"))}\`);showToast('Python 代码已复制')">复制 Python</button>
+      <button class="btn btn-small" onclick="document.getElementById('regenOutput_${groupId}').classList.add('hidden')">关闭</button>
+    </div>`;
+}
+
+function applyTaskId(groupId) {
+  const taskId = document.getElementById("regenTaskId_"+groupId).value.trim();
+  if (!taskId) { showToast("请输入 Task ID"); return; }
+  // Construct CDN URL pattern
+  const cdnUrl = `https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/${taskId}.mp4`;
+  const resultEl = document.getElementById("taskResult_"+groupId);
+  resultEl.innerHTML = `<div style="font-size:0.72rem;color:var(--accent-cyan);padding:6px 0;">
+    预计 CDN URL: <span class="code-inline" style="word-break:break-all;">${esc(cdnUrl)}</span><br>
+    <button class="btn btn-primary btn-small" style="margin-top:6px;" onclick="updateVideoSrc('${groupId}','${escAttr(cdnUrl)}')">更新视频源为 CDN URL</button>
+  </div>`;
+  showToast("CDN URL 已计算，点击更新按钮应用");
+}
+
+function updateVideoSrc(groupId, url) {
+  const v = document.getElementById("vid_"+groupId);
+  if (v) {
+    v.src = url;
+    v.load();
+    // Update group data
+    const g = GROUPS.find(x => x.id === groupId);
+    if (g) {
+      g.cdnUrl = url;
+      g.hasCdn = true;
+    }
+    showToast("视频源已更新为 CDN URL");
+    // Update badge
+    const badges = document.querySelectorAll(`#group_${groupId} .video-cdn-badge`);
+    badges.forEach(b => {
+      b.className = "video-cdn-badge has";
+      b.textContent = "CDN URL";
+    });
+  }
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
+}
+
+// ============================================================
+// RENDER: PROMPT BLOCK
+// ============================================================
+function renderPromptBlock(g, promptText) {
+  return `<div class="card" style="padding:12px;margin-bottom:14px;">
+    <div class="collapsible-head open" onclick="toggleCollapsible(this, 'promptBody_${g.id}')">
+      <div class="card-title" style="margin-bottom:0;">完整 Prompt 文本 (发送给 API)</div>
+      <span class="chev">&#9654;</span>
+    </div>
+    <div class="collapsible-body open" id="promptBody_${g.id}">
+      <pre class="prompt-pre">${highlightPrompt(promptText)}</pre>
+      <div class="prompt-stat">共 ${promptText.length} 字符 · <span style="color:var(--accent-yellow);">黄色</span>=时间段 · <span style="color:var(--accent-purple);">紫色</span>=转场短语</div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// RENDER: BREAKDOWN
+// ============================================================
+function renderBreakdown(g) {
+  let html = `<div class="card" style="padding:12px;margin-bottom:14px;">
+    <div class="collapsible-head open" onclick="toggleCollapsible(this, 'bdBody_${g.id}')">
+      <div class="card-title" style="margin-bottom:0;">Prompt 构建拆解 (逐片段)</div>
+      <span class="chev">&#9654;</span>
+    </div>
+    <div class="collapsible-body open" id="bdBody_${g.id}">`;
+  g.shotEntries.forEach((entry, i) => {
+    const [shotNum, start, end] = entry;
+    const shot = SHOTS[shotNum];
+    const scene = SCENES[shot.scene];
+    const camera = buildCameraInstruction(shot);
+    const subject = buildSubjectSegment(shot.characters) || scene.description;
+    const isSubjectScene = (!shot.characters || shot.characters.length === 0);
+    const dialogue = buildDialogueAction(shot);
+    const expression = MOOD_EXPRESSION_MAP[shot.mood] || "";
+    const clothing = buildClothing(shot.characters);
+    html += `<div class="breakdown-shot">
+      <div class="breakdown-shot-head">
+        <span class="breakdown-shot-tag">片段 ${i+1} · 镜头 ${shotNum}</span>
+        <span class="chip ${shot.scene}">${scene.label}</span>
+        <span class="chip">${shot.mood}</span>
+        <span class="chip">${start}-${end}s</span>
+      </div>
+      <div class="breakdown-field">
+        <div class="breakdown-field-label">① 时间段 + 镜头指令 (camera)</div>
+        <div class="breakdown-field-value camera"><b style="color:var(--accent-yellow);">${start}-${end}s:</b> ${esc(camera)}</div>
+      </div>
+      <div class="breakdown-field">
+        <div class="breakdown-field-label">② 主体描述 (subject)${isSubjectScene?' <span style="color:var(--accent-orange);">[无角色·回退场景描述]</span>':''}</div>
+        <div class="breakdown-field-value subject">${esc(subject)}</div>
+      </div>
+      <div class="breakdown-field">
+        <div class="breakdown-field-label">③ 动作描述 (action)</div>
+        <div class="breakdown-field-value">Action: ${esc(shot.description_en)}</div>
+      </div>`;
+    if (dialogue) {
+      html += `<div class="breakdown-field">
+        <div class="breakdown-field-label">④ 对话 (dialogue_action)</div>
+        <div class="breakdown-field-value dialogue">${esc(dialogue)}</div>
+      </div>`;
+    } else {
+      html += `<div class="breakdown-field">
+        <div class="breakdown-field-label">④ 对话 (dialogue_action)</div>
+        <div class="breakdown-field-value" style="color:var(--text-muted);border-left-color:var(--text-muted);">— 无对话，该字段省略 —</div>
+      </div>`;
+    }
+    html += `<div class="breakdown-field">
+        <div class="breakdown-field-label">⑤ 表情 (expression ← mood: ${shot.mood})</div>
+        <div class="breakdown-field-value expression">Expression: ${esc(expression)}</div>
+      </div>`;
+    if (clothing) {
+      html += `<div class="breakdown-field">
+        <div class="breakdown-field-label">⑥ 服装一致性 (clothing_maintenance)</div>
+        <div class="breakdown-field-value">${esc(clothing)}</div>
+      </div>`;
+    } else {
+      html += `<div class="breakdown-field">
+        <div class="breakdown-field-label">⑥ 服装一致性 (clothing_maintenance)</div>
+        <div class="breakdown-field-value" style="color:var(--text-muted);border-left-color:var(--text-muted);">— 无角色，该字段省略 —</div>
+      </div>`;
+    }
+    html += `<div class="breakdown-field">
+        <div class="breakdown-field-label">⑦ 场景 (scene: ${shot.scene})</div>
+        <div class="breakdown-field-value scene">Scene: ${esc(scene.description)}</div>
+      </div>
+      <div class="breakdown-field">
+        <div class="breakdown-field-label">⑧ 语言声明</div>
+        <div class="breakdown-field-value">All characters speak Chinese (Mandarin).</div>
+      </div>
+    </div>`;
+    // transition
+    if (i < g.shotEntries.length - 1) {
+      const nextNum = g.shotEntries[i+1][0];
+      const trans = getTransition(shotNum, nextNum);
+      html += `<div class="breakdown-transition">&#8627; 转场 &#8594; ${esc(trans)}</div>`;
+    }
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+// ============================================================
+// RENDER: SHOT DETAILS
+// ============================================================
+function renderShotDetails(g) {
+  let html = `<div class="card" style="padding:12px;">
+    <div class="card-title">镜头详情</div>`;
+  g.shotEntries.forEach(entry => {
+    const shotNum = entry[0];
+    const shot = SHOTS[shotNum];
+    const scene = SCENES[shot.scene];
+    const charNames = (shot.characters||[]).map(ck => CHARACTERS[ck].name).join(", ") || "无";
+    html += `<div class="shot-detail-mini">
+      <div class="shot-detail-mini-head">
+        <div class="shot-num-badge">${shotNum}</div>
+        <span class="chip">${shot.shot_type}</span>
+        <span class="chip">${shot.camera_move}</span>
+        <span class="chip">${shot.camera_angle}</span>
+        <span class="chip ${shot.scene}">${scene.label}</span>
+        <span class="chip">${shot.mood}</span>
+      </div>
+      <div class="shot-desc-cn">${esc(shot.description)}</div>
+      <div class="shot-desc-en">${esc(shot.description_en)}</div>
+      <div style="font-size:0.66rem;color:var(--text-muted);margin-top:4px;">角色: ${esc(charNames)}${shot.dialogue?' · 对话: '+esc(shot.dialogue.speaker)+' "'+esc(shot.dialogue.text)+'"':''}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+// ============================================================
+// COLLAPSIBLE
+// ============================================================
+function toggleCollapsible(headEl, bodyId) {
+  headEl.classList.toggle("open");
+  document.getElementById(bodyId).classList.toggle("open");
+}
+
+// ============================================================
+// VIDEO TIME / TIMELINE
+// ============================================================
+function updateVideoTime(groupId) {
+  const v = document.getElementById("vid_"+groupId);
+  const el = document.getElementById("vtime_"+groupId);
+  if (v && el) {
+    const cur = v.currentTime || 0;
+    const dur = v.duration || GROUPS.find(g=>g.id===groupId).duration;
+    el.textContent = fmtTime(cur) + " / " + fmtTime(dur);
+  }
+}
+function updateAnnoTimeline(groupId) {
+  const tl = document.getElementById("tl_"+groupId);
+  if (!tl) return;
+  const v = document.getElementById("vid_"+groupId);
+  const g = GROUPS.find(x=>x.id===groupId);
+  const dur = (v && v.duration) || g.duration;
+  const cur = (v && v.currentTime) || 0;
+  let prog = tl.querySelector(".tl-progress");
+  if (!prog) { prog = document.createElement("div"); prog.className="tl-progress"; tl.appendChild(prog); }
+  prog.style.width = (cur/dur*100) + "%";
+  // shot entry tick marks
+  tl.querySelectorAll(".tl-tick").forEach(m=>m.remove());
+  g.shotEntries.forEach(entry => {
+    const [shotNum, start, end] = entry;
+    [start, end].forEach(t => {
+      const tick = document.createElement("div");
+      tick.className = "tl-tick";
+      tick.style.left = (t/dur*100) + "%";
+      tick.textContent = t + "s";
+      tl.appendChild(tick);
+    });
+  });
+  // annotation markers
+  tl.querySelectorAll(".tl-marker").forEach(m=>m.remove());
+  const annos = getGroupAnnotations(groupId);
+  annos.forEach(a => {
+    const m = document.createElement("div");
+    m.className = "tl-marker";
+    m.style.left = Math.min(100, Math.max(0, a.time/dur*100)) + "%";
+    m.title = fmtTime(a.time) + " · " + a.category + " · " + a.description;
+    m.onclick = (e) => { e.stopPropagation(); if(v) v.currentTime = a.time; };
+    tl.appendChild(m);
+  });
+}
+
+// ============================================================
+// ANNOTATION FORM
+// ============================================================
+function openAnnoForm(groupId) {
+  const v = document.getElementById("vid_"+groupId);
+  const g = GROUPS.find(x=>x.id===groupId);
+  const t = (v && v.currentTime != null) ? v.currentTime : 0;
+  document.getElementById("annoTime_"+groupId).value = t.toFixed(1);
+  document.getElementById("annoDesc_"+groupId).value = "";
+  document.getElementById("annoForm_"+groupId).classList.remove("hidden");
+  document.getElementById("annoDesc_"+groupId).focus();
+}
+function closeAnnoForm(groupId) {
+  document.getElementById("annoForm_"+groupId).classList.add("hidden");
+}
+function saveAnnotation(groupId) {
+  const time = parseFloat(document.getElementById("annoTime_"+groupId).value);
+  const category = document.getElementById("annoCat_"+groupId).value;
+  const severity = document.getElementById("annoSev_"+groupId).value;
+  const description = document.getElementById("annoDesc_"+groupId).value.trim();
+  if (isNaN(time) || time < 0) { alert("请输入有效时间"); return; }
+  if (!description) { alert("请输入问题描述"); return; }
+  const list = getGroupAnnotations(groupId);
+  list.push({
+    id: "anno_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+    time: time, category: category, severity: severity, description: description,
+    createdAt: new Date().toISOString()
+  });
+  list.sort((a,b)=>a.time-b.time);
+  setGroupAnnotations(groupId, list);
+  closeAnnoForm(groupId);
+  renderAnnoList(groupId);
+  updateAnnoTimeline(groupId);
+  refreshCounts();
+}
+function deleteAnnotation(groupId, annoId) {
+  let list = getGroupAnnotations(groupId).filter(a => a.id !== annoId);
+  setGroupAnnotations(groupId, list);
+  renderAnnoList(groupId);
+  updateAnnoTimeline(groupId);
+  refreshCounts();
+}
+function renderAnnoList(groupId) {
+  const el = document.getElementById("annoList_"+groupId);
+  if (!el) return;
+  const list = getGroupAnnotations(groupId);
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-hint">暂无标注。播放视频后点击「添加标注」记录问题。</div>`;
+    return;
+  }
+  el.innerHTML = list.map(a => `<div class="anno-item">
+    <div class="anno-item-head">
+      <span class="anno-time">${fmtTime(a.time)}</span>
+      <span class="anno-cat ${catColorClass(a.category)}">${esc(a.category)}</span>
+      <span class="severity-badge ${sevClass(a.severity)}">${sevLabel(a.severity)}</span>
+      <button class="btn btn-danger btn-small anno-del" onclick="deleteAnnotation('${groupId}','${a.id}')">删除</button>
+    </div>
+    <div class="anno-desc">${esc(a.description)}</div>
+  </div>`).join("");
+}
+
+// ============================================================
+// COUNTS REFRESH
+// ============================================================
+function refreshCounts() {
+  document.getElementById("hdrAnnoCount").textContent = countAllAnnotations();
+  renderGroupNav();
+  if (document.getElementById("tab-summary").classList.contains("active")) {
+    renderSummaryTable();
+  }
+}
+
+// ============================================================
+// FILTER
+// ============================================================
+function applyFilter() {
+  const cat = document.getElementById("filterCategory").value;
+  const sev = document.getElementById("filterSeverity").value;
+  // Re-render anno lists with filter
+  GROUPS.forEach(g => {
+    const el = document.getElementById("annoList_"+g.id);
+    if (!el) return;
+    let list = getGroupAnnotations(g.id);
+    if (cat) list = list.filter(a => a.category === cat);
+    if (sev) list = list.filter(a => a.severity === sev);
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-hint">无匹配标注。</div>`;
+      return;
+    }
+    el.innerHTML = list.map(a => `<div class="anno-item">
+      <div class="anno-item-head">
+        <span class="anno-time">${fmtTime(a.time)}</span>
+        <span class="anno-cat ${catColorClass(a.category)}">${esc(a.category)}</span>
+        <span class="severity-badge ${sevClass(a.severity)}">${sevLabel(a.severity)}</span>
+      </div>
+      <div class="anno-desc">${esc(a.description)}</div>
+    </div>`).join("");
+  });
+}
+
+// ============================================================
+// SCROLL TO GROUP
+// ============================================================
+function scrollToGroup(groupId) {
+  const el = document.getElementById("group_"+groupId);
+  if (el) {
+    el.scrollIntoView({behavior:"smooth", block:"start"});
+    el.style.transition = "box-shadow 0.4s";
+    el.style.boxShadow = "0 0 0 2px var(--accent-blue)";
+    setTimeout(()=>{ el.style.boxShadow = ""; }, 1200);
+  }
+}
+
+// ============================================================
+// TAB SWITCH
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+  const map = { overview:"tab-overview", debug:"tab-debug", summary:"tab-summary" };
+  document.getElementById(map[name]).classList.add("active");
+  const btns = document.querySelectorAll(".tab-btn");
+  if (name==="overview") btns[0].classList.add("active");
+  else if (name==="debug") btns[1].classList.add("active");
+  else btns[2].classList.add("active");
+  if (name==="summary") renderSummaryTable();
+  if (name==="debug") {
+    GROUPS.forEach(g => { renderAnnoList(g.id); updateAnnoTimeline(g.id); });
+  }
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportAllAnnotations() {
+  const data = loadAnnotations();
+  const out = {
+    exported_at: new Date().toISOString(),
+    project: "plan_bd_敌帐",
+    version: "v4",
+    annotations: data
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "plan_bd_annotations_v4_" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("标注已导出");
+}
+function exportGroupAnnotations(groupId) {
+  const data = {}; data[groupId] = getGroupAnnotations(groupId);
+  const out = { exported_at: new Date().toISOString(), project:"plan_bd_敌帐", version:"v4", annotations: data };
+  const blob = new Blob([JSON.stringify(out, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "plan_bd_annotations_group"+groupId+"_v4.json"; a.click();
+  URL.revokeObjectURL(url);
+  showToast("组 "+groupId+" 标注已导出");
+}
+function importAnnotations(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const obj = JSON.parse(e.target.result);
+      const incoming = obj.annotations || obj;
+      const existing = loadAnnotations();
+      let added = 0;
+      for (const g in incoming) {
+        if (!existing[g]) existing[g] = [];
+        const existIds = new Set(existing[g].map(a=>a.id));
+        incoming[g].forEach(a => {
+          if (!existIds.has(a.id)) { existing[g].push(a); added++; }
+        });
+        existing[g].sort((a,b)=>a.time-b.time);
+      }
+      saveAnnotations(existing);
+      showToast("导入完成，新增 " + added + " 条标注");
+      refreshCounts();
+      GROUPS.forEach(g => renderAnnoList(g.id));
+      renderSummaryTable();
+    } catch(err) {
+      alert("导入失败: " + err.message);
+    }
+    event.target.value = "";
+  };
+  reader.readAsText(file);
+}
+function clearAllAnnotations() {
+  if (!confirm("确定清空全部标注？此操作不可撤销。")) return;
+  saveAnnotations({});
+  refreshCounts();
+  GROUPS.forEach(g => renderAnnoList(g.id));
+  renderSummaryTable();
+  showToast("全部标注已清空");
+}
+
+// ============================================================
+// SUMMARY TABLE
+// ============================================================
+function renderSummaryTable() {
+  const all = loadAnnotations();
+  const catFilter = document.getElementById("filterCategory").value;
+  const sevFilter = document.getElementById("filterSeverity").value;
+  let rows = [];
+  GROUPS.forEach(g => {
+    (all[g.id]||[]).forEach(a => {
+      if (catFilter && a.category !== catFilter) return;
+      if (sevFilter && a.severity !== sevFilter) return;
+      rows.push({ group:g.id, ...a });
+    });
+  });
+  rows.sort((a,b)=> {
+    if (a.group !== b.group) return a.group.localeCompare(b.group);
+    return a.time - b.time;
+  });
+  document.getElementById("summaryCount").textContent = rows.length + " 条";
+  document.getElementById("hdrAnnoCount").textContent = countAllAnnotations();
+  const tbl = document.getElementById("summaryTable");
+  if (!rows.length) {
+    tbl.innerHTML = `<tr><td style="text-align:center;padding:30px;color:var(--text-muted);">暂无标注。前往「逐组调试」添加标注。</td></tr>`;
+    return;
+  }
+  tbl.innerHTML = `<thead><tr>
+    <th>组</th><th>时间</th><th>类别</th><th>严重程度</th><th>问题描述</th><th>记录时间</th><th>操作</th>
+  </tr></thead><tbody>` +
+  rows.map(r => `<tr>
+    <td class="grp">${r.group}</td>
+    <td style="font-family:monospace;color:var(--accent-yellow);font-weight:700;">${fmtTime(r.time)}</td>
+    <td><span class="anno-cat ${catColorClass(r.category)}">${esc(r.category)}</span></td>
+    <td><span class="severity-badge ${sevClass(r.severity)}">${sevLabel(r.severity)}</span></td>
+    <td>${esc(r.description)}</td>
+    <td style="font-size:0.68rem;color:var(--text-muted);">${r.createdAt?fmtDur(r.createdAt):"-"}</td>
+    <td><button class="btn btn-danger btn-small" onclick="deleteAnnotation('${r.group}','${r.id}')">删除</button></td>
+  </tr>`).join("") +
+  `</tbody>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  renderFilterOptions();
+  renderGroupNav();
+  renderApiConfig();
+  renderGroupsGrid();
+  renderLogicCard();
+  renderCharCard();
+  renderSceneCard();
+  renderMoodCard();
+  renderDebugTab();
+  document.getElementById("hdrAnnoCount").textContent = countAllAnnotations();
+  GROUPS.forEach(g => renderAnnoList(g.id));
+}
+init();
+</script>
+</body>
+</html>
