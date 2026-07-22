@@ -629,6 +629,7 @@
         <span class="badge">DEBUG 模式</span>
         <span class="badge sub">完整 API 数据</span>
         <span class="badge" style="background:var(--accent-green);">v5</span>
+        <span class="badge" style="background:var(--accent-purple);">DeepSeek对比</span>
       </div>
     </div>
     <div class="header-stats">
@@ -902,6 +903,30 @@ const GROUPS = [
   { id:"H", shotEntries:[[15,0,8]], duration:8, numFrames:193,
     video:"videos/group_H.mp4", cdnUrl:null, hasCdn:false }
 ];
+
+// ============================================================
+// DATA: DEEPSEEK COMPARE VIDEOS
+// ============================================================
+const DEEPSEEK_COMPARE = {
+  A: {
+    label: "开篇 \u00b7 砂粒特写 (handheld + slow-motion + tilt down)",
+    cdnUrl: "https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/task_1HFRcfadqWL2C1yUEEnSO93SrEEI02Ph.mp4",
+    duration: 10,
+    advantages: "handheld shaking手持摇晃 + slow-motion慢动作 + tilts down镜头下摇建立压迫感 + 砂粒特写开场"
+  },
+  C: {
+    label: "反杀 \u00b7 铁链缠脖 + 夺刀 (overcranked 120fps + 切黑)",
+    cdnUrl: "https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/task_yRVI54RlVWWBg9g1sarTxifYtzxHeKln.mp4",
+    duration: 13,
+    advantages: "overcranked 120fps升格 + slow-motion慢放 + 切黑0.3s断续 + 逐格快切 + POV血珠飞溅"
+  },
+  H: {
+    label: "结尾 \u00b7 渐黑收尾 (slow pull-back + fade to black)",
+    cdnUrl: "https://platform-outputs.agnes-ai.space/videos/agnes-video-v2.0/task_HQW2DDxv61ubeUC0LjQ50vKYhn3M3LSe.mp4",
+    duration: 10,
+    advantages: "slow pull-back缓慢后拉 + fade to black渐黑收尾 + 画外风声渐强 + 荒原远景"
+  }
+};
 
 // ============================================================
 // DATA: PROGRESS (from progress.json)
@@ -1242,6 +1267,37 @@ function renderDebugTab() {
       });
     }
   });
+  initCompareVideos();
+}
+
+function renderDeepSeekCompare(groupId, ds) {
+  return `
+  <div class="ds-compare-section" style="margin:12px 0;border:1px solid var(--accent-purple);border-radius:8px;overflow:hidden;background:rgba(168,85,247,0.05);">
+    <div class="ds-compare-header" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(168,85,247,0.12);border-bottom:1px solid var(--accent-purple);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:0.7rem;font-weight:700;color:var(--accent-purple);">DEEPSEEK 对比版</span>
+        <span style="font-size:0.62rem;color:var(--text-muted);">${esc(ds.label)}</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-small" style="border-color:var(--accent-purple);color:var(--accent-purple);font-size:0.65rem;padding:2px 8px;" onclick="toggleCompareSync('${groupId}')">同步播放</button>
+        <button class="btn btn-small" style="border-color:var(--accent-purple);color:var(--accent-purple);font-size:0.65rem;padding:2px 8px;" onclick="toggleCompareLayout('${groupId}')">并排/上下</button>
+      </div>
+    </div>
+    <div class="ds-compare-body" id="dsBody_${groupId}" style="display:flex;gap:8px;padding:10px;flex-direction:row;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.62rem;color:var(--accent-blue);margin-bottom:4px;font-weight:600;">原始版 (组 ${groupId})</div>
+        <video id="ds_orig_${groupId}" style="width:100%;border-radius:4px;background:#000;max-height:280px;" muted playsinline preload="metadata"></video>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.62rem;color:var(--accent-purple);margin-bottom:4px;font-weight:600;">DeepSeek 版</div>
+        <video id="ds_new_${groupId}" src="${esc(ds.cdnUrl)}" style="width:100%;border-radius:4px;background:#000;max-height:280px;" muted playsinline preload="metadata"></video>
+      </div>
+    </div>
+    <div style="padding:6px 12px;border-top:1px solid rgba(168,85,247,0.2);">
+      <div style="font-size:0.62rem;color:var(--accent-purple);font-weight:600;margin-bottom:3px;">镜头语言优势</div>
+      <div style="font-size:0.68rem;color:var(--text-secondary);line-height:1.5;">${esc(ds.advantages)}</div>
+    </div>
+  </div>`;
 }
 
 function renderDebugCard(g) {
@@ -1275,6 +1331,7 @@ function renderDebugCard(g) {
             <div class="video-time" id="vtime_${g.id}">0.0s / ${g.duration}.0s</div>
             <div class="video-cdn-badge ${g.hasCdn?'has':'missing'}">${g.hasCdn?'CDN URL':'Local: '+g.video}</div>
           </div>
+          ${DEEPSEEK_COMPARE[g.id] ? renderDeepSeekCompare(g.id, DEEPSEEK_COMPARE[g.id]) : ''}
           <div class="anno-timeline" id="tl_${g.id}" title="点击时间轴跳转"></div>
           <div class="anno-controls">
             <div class="btn-row">
@@ -1500,6 +1557,44 @@ print(response.json())`;
       <button class="btn btn-success btn-small" onclick="copyToClipboard(\`${esc(code.replace(/`/g,"\\`").replace(/\\/g,"\\\\").replace(/\$/g,"\\$"))}\`);showToast('Python 代码已复制')">复制 Python</button>
       <button class="btn btn-small" onclick="document.getElementById('regenOutput_${groupId}').classList.add('hidden')">关闭</button>
     </div>`;
+}
+
+// ===== DEEPSEEK COMPARE FUNCTIONS =====
+const DS_SYNC = {};
+const DS_LAYOUT = {};
+
+function initCompareVideos() {
+  GROUPS.forEach(g => {
+    if (!DEEPSEEK_COMPARE[g.id]) return;
+    const orig = document.getElementById("ds_orig_"+g.id);
+    if (orig) {
+      const mainVid = document.getElementById("vid_"+g.id);
+      if (mainVid) orig.src = mainVid.src;
+    }
+  });
+}
+
+function toggleCompareSync(groupId) {
+  DS_SYNC[groupId] = !DS_SYNC[groupId];
+  if (DS_SYNC[groupId]) {
+    const orig = document.getElementById("ds_orig_"+groupId);
+    const nev = document.getElementById("ds_new_"+groupId);
+    if (orig && nev) {
+      nev.addEventListener("play", () => { if(DS_SYNC[groupId]) orig.play(); });
+      nev.addEventListener("pause", () => { if(DS_SYNC[groupId]) orig.pause(); });
+      nev.addEventListener("seeked", () => { if(DS_SYNC[groupId]) orig.currentTime = nev.currentTime; });
+      orig.addEventListener("play", () => { if(DS_SYNC[groupId]) nev.play(); });
+      orig.addEventListener("pause", () => { if(DS_SYNC[groupId]) nev.pause(); });
+      orig.addEventListener("seeked", () => { if(DS_SYNC[groupId]) nev.currentTime = orig.currentTime; });
+    }
+  }
+  showToast(DS_SYNC[groupId] ? "同步播放已开启" : "同步播放已关闭", "info");
+}
+
+function toggleCompareLayout(groupId) {
+  DS_LAYOUT[groupId] = DS_LAYOUT[groupId] === "column" ? "row" : "column";
+  const body = document.getElementById("dsBody_"+groupId);
+  if (body) body.style.flexDirection = DS_LAYOUT[groupId];
 }
 
 // ===== DIRECT GENERATE WITH PROGRESS TRACKING =====
